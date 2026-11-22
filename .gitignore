@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+save.json
+save.json.bak
+save.json.tmp
+pet_error.log
+pet_crash.log
