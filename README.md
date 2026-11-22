@@ -11,7 +11,7 @@ Single file · Python 3 + tkinter only · no dependencies · Windows / macOS / L
 ## Quick start
 
 ```bash
-python pocket_karolina_v12.py
+python pocket_karolina_v13.py
 ```
 
 On Windows you can double-click `start_pocket_karolina.bat` instead. The launcher shows any error and writes it to
@@ -37,6 +37,10 @@ On Windows you can double-click `start_pocket_karolina.bat` instead. The launche
   them: sniffs the plant, sips tea, hugs the teddy, pokes the cactus and says "ouch".
 - **Pals.** Frog, and Lila the pinscher on a leash. Lila can also play fetch.
 - **Games.** Rock paper scissors (against her, or against someone on the phone).
+- **Chaos mode.** Bag > Fun > Chaos (or the phone). For 30 to 45 seconds she sprints around, bonks into the
+  screen edges, knocks her desk props flying, clicks through her own wardrobe panel and changes clothes like crazy,
+  and opens your Downloads folder 2 or 3 times ("oops!"). Then she flops over, dizzy, and tidies her outfit a bit later.
+  Click her to stop it early. It never clicks outside the app and never opens anything except Downloads.
 - **Notes and reminders.** Type `18:30 call mom` and she reminds you at 18:30.
 - **Languages.** English, Turkish and Polish for the whole UI and every speech line.
 - **Calm mode.** Less walking, no chatter, no random emotes, for when you need to focus.
@@ -52,6 +56,10 @@ On Windows you can double-click `start_pocket_karolina.bat` instead. The launche
 
 ![Emotes](docs/emotes.png)
 
+### Chaos mode
+
+![Chaos](docs/chaos.png)
+
 ### Desk props
 
 ![Props](docs/props.png)
@@ -63,7 +71,7 @@ Open that link on a phone on the same Wi-Fi. From the phone you can:
 
 - chat with her and send notes and reminders,
 - change and save outfits (with a live preview of the character),
-- trigger actions and emotes,
+- trigger actions and emotes (including Chaos!),
 - play mini games: a rock paper scissors duel against the person at the PC, tic-tac-toe, and memory.
 
 ![Phone](docs/phone.png)
@@ -75,7 +83,7 @@ whitelist of actions. It is meant for your local network only; do not expose the
 
 | File | Purpose |
 |---|---|
-| `pocket_karolina_v12.py` | The whole app |
+| `pocket_karolina_v13.py` | The whole app |
 | `start_pocket_karolina.py` / `.bat` | Launcher that picks the newest `pocket_karolina_v*.py` and reports errors |
 | `save.json` | Created on first run (ignored by git) |
 
@@ -86,5 +94,5 @@ whitelist of actions. It is meant for your local network only; do not expose the
 
 ---
 
-*Türkçe özet:* Masaüstünde yaşayan küçük piksel Karolina. `python pocket_karolina_v12.py` ile çalıştır; sağ tıkla menüyü aç,
-Settings > Phone ile telefondan kontrol et.
+*Türkçe özet:* Masaüstünde yaşayan küçük piksel Karolina. `python pocket_karolina_v13.py` ile çalıştır; sağ tıkla menüyü aç,
+Settings > Phone ile telefondan kontrol et. Yeni: Bag > Fun > Chaos ile kaos modu.

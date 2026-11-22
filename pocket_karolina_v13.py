@@ -1,7 +1,7 @@
 """
-Pocket Karolina  v12
+Pocket Karolina  v13
 ----------------------
-Çalıştırma:  python pocket_karolina_v12.py   (ya da start_pocket_karolina.bat'a çift tık)
+Çalıştırma:  python pocket_karolina_v13.py   (ya da start_pocket_karolina.bat'a çift tık)
              Ekstra kurulum yok: sadece Python + tkinter.
 
 Kontroller:
@@ -11,6 +11,8 @@ Kontroller:
       Dance Sleep Kiss Wave Jump Spin Run Hug  |  Bag  Notes  Settings  Quit
   - Bag  : Hats / Eyes / Wear / Gear / Desk / Emote / Fun sekmeli kişiselleştirme paneli.
            Üzerine gelince anlık önizleme, tıklayınca tak/çıkar. Emote sekmesi ifade oynatır.
+  - Fun > Chaos: 30-45 sn kaos modu. Koşar, eşyaları devirir, kendi paneline tıklayıp
+           kıyafet değiştirir, İndirilenler klasörünü 2-3 kez açar. Pet'e tek tık = dur.
   - Notes: kısa not / hatırlatıcı. "18:30 anneyi ara" yazarsan saatinde hatırlatır.
   - Settings: dil (EN/TR/PL), konuşma, SAKİN MOD, pencereye tırmanma, flaş, telefon bağlantısı.
 
@@ -28,6 +30,7 @@ import os
 import random
 import re
 import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -684,7 +687,7 @@ UI_TXT = {
         "Books": "Kitaplar", "Cactus": "Kaktüs", "Corner": "Köşe",
         "Love": "Aşk", "Wow": "Vay", "Wink": "Göz kır", "Shy": "Utan", "Laugh": "Gül",
         "Super!": "Süper!", "Cry": "Ağla", "Grr": "Grr", "Dizzy": "Sersem", "Shock": "Şok",
-        "Frog": "Kurbağa", "Lila": "Lila", "RPS": "TKM", "Fetch": "Getir",
+        "Frog": "Kurbağa", "Lila": "Lila", "RPS": "TKM", "Fetch": "Getir", "Chaos": "Kaos",
         "Clear outfit": "Hepsini çıkar", "Close": "Kapat",
         "hover to preview · click to wear": "üzerine gel: önizle · tıkla: tak",
         "click an emote to play it": "bir emote seç, oynasın",
@@ -724,7 +727,7 @@ UI_TXT = {
         "Books": "Książki", "Cactus": "Kaktus", "Corner": "Róg",
         "Love": "Miłość", "Wow": "Wow", "Wink": "Mrugnij", "Shy": "Wstyd", "Laugh": "Śmiech",
         "Super!": "Super!", "Cry": "Płacz", "Grr": "Grr", "Dizzy": "Zawrót", "Shock": "Szok",
-        "Frog": "Żabka", "Lila": "Lila", "RPS": "KPN", "Fetch": "Aport",
+        "Frog": "Żabka", "Lila": "Lila", "RPS": "KPN", "Fetch": "Aport", "Chaos": "Chaos",
         "Clear outfit": "Zdejmij wszystko", "Close": "Zamknij",
         "hover to preview · click to wear": "najedź: podgląd · kliknij: załóż",
         "click an emote to play it": "kliknij emocję, a ją zagra",
@@ -1122,7 +1125,8 @@ STYLE_TABS = [
                       ("prop", "cactus", "Cactus"), ("corner", "corner", "Corner")]),
     ("Emote", "emote", [("emote", e, EMOTES[e]["label"]) for e in EMOTES]),
     ("Fun", "fun", [("pal", "frog", "Frog"), ("pal", "lila", "Lila"),
-                    ("game", "rps", "RPS"), ("game", "ball", "Fetch")]),
+                    ("game", "rps", "RPS"), ("game", "ball", "Fetch"),
+                    ("game", "chaos", "Chaos")]),
 ]
 
 
@@ -1246,6 +1250,9 @@ class StylePanel(BubbleBase):
 
     def on_closing(self):
         self.pet.preview.clear()
+
+    def keep_open(self):
+        return bool(self.pet.chaos)
 
     def on_click(self, e):
         if self.state != "idle":
@@ -2532,7 +2539,7 @@ class DeskProp:
         self.item = self.cv.create_image(0, 0, anchor="nw")
         self.x = float(x if x is not None else random.randint(120, max(130, pet.sw - 220)))
         self.y = float(pet.ground + pet.ch - self.ph)
-        self.vy = 0.0
+        self.vy = self.vx = 0.0
         self.t = random.randint(0, 200)
         self.drag = None
         self.moved = 0
@@ -2562,7 +2569,15 @@ class DeskProp:
     def on_press(self, e):
         self.drag = (e.x, e.y)
         self.moved = 0
-        self.vy = 0.0
+        self.vy = self.vx = 0.0
+
+    def knock(self, d):
+        """Kaos: karakter çarpınca obje havaya fırlar, kayarak yere düşer."""
+        if self.drag or self.hidden:
+            return
+        self.vy = -random.uniform(7.0, 10.0)
+        self.vx = d * random.uniform(4.5, 7.5)
+        self.y -= 1
 
     def on_drag(self, e):
         self.moved += 1
@@ -2590,6 +2605,14 @@ class DeskProp:
                 self.y = min(self.y + self.vy, floor)
             else:
                 self.y, self.vy = floor, 0.0
+            if self.vx:
+                self.x += self.vx
+                self.vx *= 0.98 if self.y < floor - 0.5 else 0.8
+                if abs(self.vx) < 0.3:
+                    self.vx = 0.0
+                hi = self.pet.sw - self.pw
+                if self.x < 0 or self.x > hi:
+                    self.x, self.vx = max(0.0, min(float(hi), self.x)), -self.vx * 0.5
         key = (self.frame(), self.on)
         if key != self.cur:
             self.cur = key
@@ -2630,7 +2653,16 @@ def ball_image(frame, scale=3):
     return im
 
 
+CHAOS_ICON = ["....oooo..", "...oyyyo..", "..oyyyo...", ".oyyyoooo.", "oyyyyyyyo.",
+              "ooooyyyo..", "...oyyo...", "..oyyo....", ".oyo......", ".oo......."]
+_CHAOS_IMG = []
+
+
 def game_icon(iid):
+    if iid == "chaos":
+        if not _CHAOS_IMG:
+            _CHAOS_IMG.append(grid_to_image(CHAOS_ICON, {"o": "#3a1f1c", "y": "#ffd23f"}, False, 3))
+        return _CHAOS_IMG[0]
     return hand_image("scissors", 2) if iid == "rps" else ball_image(0, 3)
 
 
@@ -3136,6 +3168,24 @@ LINES = {
 }
 
 # Eksik anahtar olursa İngilizceye düş (yeni dil eklemek kolay olsun)
+LINES["en"].update({
+    "chaos_start": ["CHAOS TIME!", "Hehehe... chaos!", "So gay! CHAOS!", "Nobody can stop me!"],
+    "chaos_oops": ["Oops! Downloads!", "Hehe, what's this folder?", "Oopsie ♥", "Did I do that?"],
+    "chaos_end": ["*pant pant*", "Okay... I'm done.", "That was so gay! ♥", "Worth it."],
+    "chaos_stop": ["Okay okay, I'll stop!", "Fine... calm now.", "Hehe, sorry!"],
+    "chaos_fixed": ["Fixed my outfit ♥", "Much better.", "Back to normal!"]})
+LINES["tr"].update({
+    "chaos_start": ["KAOS ZAMANI!", "Hehehe... kaos!", "So gay! KAOS!", "Kimse beni durduramaz!"],
+    "chaos_oops": ["Ups! İndirilenler!", "Hehe, bu klasör ne?", "Upsi ♥", "Bunu ben mi yaptım?"],
+    "chaos_end": ["*hah hah*", "Tamam... bitti.", "So gay'di! ♥", "Değdi."],
+    "chaos_stop": ["Tamam tamam, duruyorum!", "Peki... sakinim.", "Hehe, pardon!"],
+    "chaos_fixed": ["Kıyafetimi düzelttim ♥", "Çok daha iyi.", "Normale döndüm!"]})
+LINES["pl"].update({
+    "chaos_start": ["CZAS NA CHAOS!", "Hehehe... chaos!", "So gay! CHAOS!", "Nikt mnie nie zatrzyma!"],
+    "chaos_oops": ["Ups! Pobrane!", "Hehe, co to za folder?", "Upsik ♥", "To ja zrobiłam?"],
+    "chaos_end": ["*dysz dysz*", "Dobra... koniec.", "To było so gay! ♥", "Warto było."],
+    "chaos_stop": ["Dobra dobra, przestaję!", "No dobrze... spokój.", "Hehe, sorki!"],
+    "chaos_fixed": ["Poprawiłam strój ♥", "Dużo lepiej.", "Wracam do normy!"]})
 LINES["en"].update({"remote_on": "Link copied! Same Wi-Fi:", "remote_off": "Phone link is off.",
                     "remote_fail": "Could not start the phone link."})
 LINES["tr"].update({"remote_on": "Link kopyalandı! Aynı Wi-Fi:", "remote_off": "Telefon bağlantısı kapalı.",
@@ -3150,6 +3200,53 @@ for _lg in list(LINES):
 def pick_line(lang, key):
     v = LINES.get(lang, LINES["en"]).get(key) or LINES["en"].get(key)
     return random.choice(v) if isinstance(v, list) else v
+
+
+# ===========================================================================
+#  KAOS MODU: yalnızca İndirilenler klasörünü açar, başka hiçbir şeye dokunmaz
+# ===========================================================================
+CHAOS_TICKS = (900, 1350)      # 30-45 sn
+CHAOS_FOLDERS = (2, 3)         # kaç kez İndirilenler açılır
+
+
+def downloads_dir():
+    """Kullanıcının İndirilenler klasörü (Windows'ta taşınmış olsa bile), yoksa None."""
+    if IS_WIN:
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class GUID(ctypes.Structure):
+                _fields_ = [("a", wintypes.DWORD), ("b", wintypes.WORD), ("c", wintypes.WORD),
+                            ("d", ctypes.c_ubyte * 8)]
+            g = GUID(0x374DE290, 0x123F, 0x4565,
+                     (ctypes.c_ubyte * 8)(0x91, 0x64, 0x39, 0xC4, 0x92, 0x5E, 0x46, 0x7B))
+            out = ctypes.c_wchar_p()
+            if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(g), 0, None,
+                                                          ctypes.byref(out)) == 0:
+                path = out.value
+                ctypes.windll.ole32.CoTaskMemFree(out)
+                if path and os.path.isdir(path):
+                    return path
+        except Exception:
+            pass
+    p = os.path.join(os.path.expanduser("~"), "Downloads")
+    return p if os.path.isdir(p) else None
+
+
+def open_folder(path):
+    """Klasörü yeni bir dosya gezgini penceresinde açar; beklemez, hata yutar."""
+    try:
+        if IS_WIN:
+            subprocess.Popen(["explorer", os.path.normpath(path)])
+        elif IS_MAC:
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+        return True
+    except Exception:
+        return False
 
 
 # ===========================================================================
@@ -3330,7 +3427,8 @@ def avatar_png(worn, scale=6, pose="idle"):
     return data
 
 
-REMOTE_ACTIONS = ("dance", "wave", "kiss", "hug", "jump", "spin", "selfie", "sleep") + tuple(EMOTES)
+REMOTE_ACTIONS = ("dance", "wave", "kiss", "hug", "jump", "spin", "selfie", "sleep",
+                  "chaos") + tuple(EMOTES)
 MAX_BODY, MAX_MSG = 2048, 140
 RPS_NAMES = ('rock', 'paper', 'scissors')
 GAME_NAMES = ('rps', 'ttt', 'mem')
@@ -3629,10 +3727,10 @@ h2{font-size:12px;margin:14px 0 6px;color:var(--acc);text-transform:uppercase;le
 <script>
 var Q=new URLSearchParams(location.search),K=Q.get('k')||'',S=null,TAB=0,SL=['hat','glasses','outfit','neck','held'],G=null,pickedSeq=-1,mode='msg',sig='',avsrc='';
 var EM=['love','wow','wink','shy','laugh','super','cry','angry','dizzy','shock'];
-var EJ={dance:'💃',wave:'👋',kiss:'😘',hug:'🤗',jump:'🦘',spin:'🌀',selfie:'🤳',sleep:'😴',love:'😍',wow:'🤩',wink:'😉',shy:'🥰',laugh:'😂',super:'🌈',cry:'😭',angry:'😠',dizzy:'😵',shock:'😱'};
-var AL={en:{dance:'Dance',wave:'Wave',kiss:'Kiss',hug:'Hug',jump:'Jump',spin:'Spin',selfie:'Selfie',sleep:'Sleep',love:'Love',wow:'Wow',wink:'Wink',shy:'Shy',laugh:'Laugh',super:'Super!',cry:'Cry',angry:'Grr',dizzy:'Dizzy',shock:'Shock',Actions:'Actions',Emotes:'Emotes'},
-tr:{dance:'Dans',wave:'El salla',kiss:'Öp',hug:'Sarıl',jump:'Zıpla',spin:'Dön',selfie:'Selfie',sleep:'Uyu',love:'Aşk',wow:'Vay',wink:'Göz kır',shy:'Utan',laugh:'Gül',super:'Süper!',cry:'Ağla',angry:'Grr',dizzy:'Sersem',shock:'Şok',Actions:'Hareketler',Emotes:'İfadeler'},
-pl:{dance:'Taniec',wave:'Pomachaj',kiss:'Buziak',hug:'Przytul',jump:'Skok',spin:'Obrót',selfie:'Selfie',sleep:'Spać',love:'Miłość',wow:'Wow',wink:'Mrugnij',shy:'Wstyd',laugh:'Śmiech',super:'Super!',cry:'Płacz',angry:'Grr',dizzy:'Zawrót',shock:'Szok',Actions:'Ruchy',Emotes:'Emocje'}};
+var EJ={chaos:'🌪️',dance:'💃',wave:'👋',kiss:'😘',hug:'🤗',jump:'🦘',spin:'🌀',selfie:'🤳',sleep:'😴',love:'😍',wow:'🤩',wink:'😉',shy:'🥰',laugh:'😂',super:'🌈',cry:'😭',angry:'😠',dizzy:'😵',shock:'😱'};
+var AL={en:{chaos:'Chaos!',dance:'Dance',wave:'Wave',kiss:'Kiss',hug:'Hug',jump:'Jump',spin:'Spin',selfie:'Selfie',sleep:'Sleep',love:'Love',wow:'Wow',wink:'Wink',shy:'Shy',laugh:'Laugh',super:'Super!',cry:'Cry',angry:'Grr',dizzy:'Dizzy',shock:'Shock',Actions:'Actions',Emotes:'Emotes'},
+tr:{chaos:'Kaos!',dance:'Dans',wave:'El salla',kiss:'Öp',hug:'Sarıl',jump:'Zıpla',spin:'Dön',selfie:'Selfie',sleep:'Uyu',love:'Aşk',wow:'Vay',wink:'Göz kır',shy:'Utan',laugh:'Gül',super:'Süper!',cry:'Ağla',angry:'Grr',dizzy:'Sersem',shock:'Şok',Actions:'Hareketler',Emotes:'İfadeler'},
+pl:{chaos:'Chaos!',dance:'Taniec',wave:'Pomachaj',kiss:'Buziak',hug:'Przytul',jump:'Skok',spin:'Obrót',selfie:'Selfie',sleep:'Spać',love:'Miłość',wow:'Wow',wink:'Mrugnij',shy:'Wstyd',laugh:'Śmiech',super:'Super!',cry:'Płacz',angry:'Grr',dizzy:'Zawrót',shock:'Szok',Actions:'Ruchy',Emotes:'Emocje'}};
 function al(n){return ((AL[(S&&S.lang)||'en']||AL.en)[n])||n}
 var T={en:{Chat:'Chat',Outfit:'Outfit',Games:'Games',Play:'Play',Message:'Message',Note:'Note',send:'Send',none:'None',off:'Pocket K is offline',Saved:'Saved outfits',Save:'Save',name:'Outfit name',write:'Write something sweet...',notew:'18:30 Drink water',
 empty:'Say hi! The pet will show your message on the desktop.',back:'‹ Back',rps:'Rock Paper Scissors',ttt:'Tic-Tac-Toe',mem:'Memory',rpsd:'Duel or vs pet',tttd:'You vs the pet',memd:'Find the pairs',
@@ -3764,7 +3862,7 @@ AFF_DECAY = 0.18          # ilgi: saniyede düşüş (ilgilenilmezse)
 ENERGY_PER_SEC = {"sleep": 1.6, "sit": 0.35, "sulk": 0.3, "yawn": 0.2, "dangle": 0.25,
                   "look": 0.15, "idle": 0.12, "walk": -0.12, "run": -0.7, "dance": -0.5,
                   "climb": -0.45, "kiss": -0.05, "wave": -0.05, "selfie": -0.1,
-                  "jump": -0.2, "spin": -0.2}
+                  "jump": -0.2, "spin": -0.2, "flop": 0.6}
 
 
 def clamp100(v):
@@ -3777,7 +3875,8 @@ class Pet:
            "jump": (1, 1), "spin": (1, 1), "selfie": (80, 80), "hug": (80, 90),
            "bored": (120, 200), "sulk": (160, 280), "yawn": (45, 55),
            "dangle": (150, 320), "look": (80, 140), "climb": (900, 900), "dropoff": (1, 1),
-           "visit": (6000, 6000), "stretch": (62, 62), "emote": (100, 100)}
+           "visit": (6000, 6000), "stretch": (62, 62), "emote": (100, 100),
+           "flop": (100, 120)}
 
     def __init__(self, save_path=None, watcher_provider=None):
         self.root = tk.Tk()
@@ -3842,6 +3941,8 @@ class Pet:
         self.leaving = None           # tünekten yürüyerek ayrılıyor
         self.visit = None             # masa objesini kullanma (içme, koklama, uyku...)
         self.emote = None             # oynayan emote kimliği
+        self.chaos = None             # kaos modu durumu (dict) ya da None
+        self.chaos_fix = None         # kaos sonrası kıyafeti toparlama zamanlayıcısı
         self.skip_land = None         # (pencere id, bitiş tick'i): kısa süre tekrar konma
         self.climb = None
         self.climbing = False
@@ -3910,7 +4011,7 @@ class Pet:
         return {
             "version": SAVE_VERSION, "saved_at": time.time(),
             "stats": {k: round(v, 1) for k, v in self.stats.items()},
-            "counters": dict(self.counters), "worn": dict(self.worn),
+            "counters": dict(self.counters), "worn": dict(self.calm_worn()),
             "companions": {"frog": self.frog is not None, "dog": self.dog is not None},
             "props": [p.state() for p in self.props.values()],
             "notes": [dict(n) for n in self.notes], "prefs": dict(self.prefs),
@@ -4119,6 +4220,8 @@ class Pet:
         if kind == "pal":
             return (self.frog if iid == "frog" else self.dog) is not None
         if kind == "game":
+            if iid == "chaos":
+                return bool(self.chaos)
             return iid == "ball" and bool(self.ball_game)
         return False
 
@@ -4126,6 +4229,7 @@ class Pet:
         if kind == "worn":
             self.toggle_item(iid)
         elif kind == "clear":
+            self.chaos_fix = None
             for s in (("neck", "held") if iid == "gear" else (iid,)):
                 self.worn[s] = None
             self.save_soon()
@@ -4143,6 +4247,7 @@ class Pet:
             self.spawn("spark", PADX + 16 * SCALE, PADT + 8 * SCALE)
 
     def toggle_item(self, iid):
+        self.chaos_fix = None
         slot = SLOT_OF[iid]
         if self.worn[slot] == iid:
             self.worn[slot] = None
@@ -4157,6 +4262,7 @@ class Pet:
         self.refresh_cache()
 
     def clear_worn(self):
+        self.chaos_fix = None
         for s in SLOTS:
             self.worn[s] = None
         self.sparkle(6)
@@ -4372,6 +4478,8 @@ class Pet:
             self.phone_rps_move(cmd[1])
         elif kind == "outfit":
             self.remote_outfit(cmd[1], cmd[2])
+        elif kind == "action" and cmd[1] == "chaos":
+            self.toggle_chaos()
         elif kind == "action":
             if not (self.dragging or self.climbing or self.menu_open or self.visit):
                 if cmd[1] in EMOTES:
@@ -4410,6 +4518,7 @@ class Pet:
         self.save_soon()
 
     def apply_preset(self, i):
+        self.chaos_fix = None
         if not 0 <= i < len(self.presets):
             return
         for sl in SLOTS:
@@ -4455,6 +4564,7 @@ class Pet:
         self.phone_game("rps", result)
 
     def remote_outfit(self, slot, iid):
+        self.chaos_fix = None
         if slot not in SLOTS or (iid and SLOT_OF.get(iid) != slot):
             return
         self.worn[slot] = iid or None
@@ -4547,6 +4657,10 @@ class Pet:
         nxt = {"bag": self.open_style, "notes": self.open_notes,
                "settings": self.open_settings, "back": self.open_main}
         nxt["game_rps"] = self.open_rps
+        if choice == "game_chaos":
+            self.menu_open = False
+            self.root.after(40, self.toggle_chaos)
+            return
         if choice == "game_ball":
             self.menu_open = False
             self.root.after(40, self.toggle_ball)
@@ -4661,6 +4775,9 @@ class Pet:
             vx = (sm[-1][1] - sm[0][1]) * k
             vy = (sm[-1][2] - sm[0][2]) * k
         if self.moved < 5:
+            if self.chaos:
+                self.stop_chaos(early=True)
+                return
             self.poke()
             return
         self.vx = max(-22.0, min(22.0, vx))                 # fırlatma
@@ -4823,6 +4940,9 @@ class Pet:
         return w
 
     def next_action(self):
+        if self.chaos:
+            self.chaos_next()
+            return
         st = self.stats
         if self.action == "sleep" and st["energy"] < 55:     # toparlanana dek uyu
             self.start("sleep", 300)
@@ -5318,6 +5438,170 @@ class Pet:
         self.save_soon()
         self.refresh_cache()
 
+    # ================================================================ KAOS
+    def calm_worn(self):
+        """Kaos sırasında / toparlanmadan önce kaydedilecek asıl kıyafet."""
+        if self.chaos:
+            return self.chaos["worn"]
+        if self.chaos_fix:
+            return self.chaos_fix["worn"]
+        return self.worn
+
+    def toggle_chaos(self):
+        if self.chaos:
+            self.stop_chaos(early=True)
+        else:
+            self.start_chaos()
+
+    def start_chaos(self):
+        if self.chaos or self.dragging:
+            return False
+        base = dict(self.calm_worn())
+        self.chaos_fix = None
+        self.close_bubble()
+        self.end_ball(quiet=True)
+        self.cancel_visit()
+        if self.perch:
+            self.leave_perch(hop=True, quiet=True)
+        self.climb, self.climbing = None, False
+        dur = random.randint(*CHAOS_TICKS)
+        k = random.randint(*CHAOS_FOLDERS)
+        when = [int(dur * (0.2 + 0.6 * i / max(1, k - 1))) + random.randint(-25, 25) for i in range(k)]
+        self.chaos = {"t": 0, "dur": dur, "worn": base, "folders": sorted(when), "opened": 0,
+                      "next_spree": random.randint(90, 160), "spree": None,
+                      "next_pal": random.randint(30, 70), "knocked": {}, "bonk": -99}
+        self.chat("chaos_start", force=True, cooldown=0, gap=False, dur=80)
+        for dx in (-20, 0, 20):
+            self.spawn("txt", PADX + 16 * SCALE + dx, PADT + 2 * SCALE, text="!",
+                       col="#e63946", size=18, life=24)
+        self.start("jump")
+        self.publish_remote()
+        return True
+
+    def stop_chaos(self, early=False):
+        c = self.chaos
+        if not c:
+            return
+        self.chaos = None
+        if isinstance(self.bubble, StylePanel):
+            self.bubble.close()
+        self.chaos_fix = {"t": self.t + random.randint(240, 360), "worn": c["worn"]}
+        self.bump(mood=6, energy=-8 if early else -15)
+        self.vx = 0.0
+        if early:
+            self.chat("chaos_stop", force=True, cooldown=0, gap=False)
+            self.start("flop", 60)
+        else:
+            self.chat("chaos_end", force=True, cooldown=0, gap=False)
+            self.start("flop")
+        self.save_soon()
+        self.publish_remote()
+
+    def chaos_next(self):
+        r = random.random()
+        if r < 0.58:
+            self.start("run", random.randint(25, 70))
+        elif r < 0.74:
+            self.start("jump")
+        elif r < 0.84:
+            self.start("spin")
+        else:
+            self.start("emote", 45)
+            self.emote = random.choice(["dizzy", "laugh", "super", "wow", "shock"])
+
+    def chaos_bonk(self):
+        c = self.chaos
+        if self.t - c["bonk"] < 20:
+            return
+        c["bonk"] = self.t
+        self.spawn("txt", PADX + 16 * SCALE, PADT + 2 * SCALE, text="BONK!", col="#e63946",
+                   size=14, life=22)
+        if not self.perch:
+            self.vx, self.vy = 0.0, -6.0
+            self.y -= 1
+
+    def chaos_folder(self):
+        path = downloads_dir()
+        if path and open_folder(path):
+            self.chaos["opened"] += 1
+        self.chat("chaos_oops", force=True, cooldown=0, gap=False, dur=70)
+        self.start("emote", 50)
+        self.emote = "shock"
+
+    def chaos_click(self, panel):
+        """Kendi stil panelinde rastgele sekme + kıyafet 'tıklar' (yalnızca uygulamanın içi)."""
+        panel.tab = random.choice([0, 0, 1, 2, 2, 3])
+        tiles = [i for i, (k, _iid, _l) in enumerate(panel.tiles()) if k == "worn"]
+        if not tiles:
+            return
+        i = random.choice(tiles)
+        panel.hover = i
+        iid = panel.tiles()[i][1]
+        self.worn[SLOT_OF[iid]] = iid
+        self.react_t = 12
+        self.sparkle(2)
+        self.spawn("txt", PADX + 26 * SCALE, PADT + 4 * SCALE, text="click!", col="#ff5c8a",
+                   size=9, life=14)
+        self.refresh_cache()
+
+    def chaos_step(self):
+        c = self.chaos
+        if self.dragging:
+            return
+        c["t"] += 1
+        t = c["t"]
+        if t >= c["dur"]:
+            self.stop_chaos()
+            return
+        busy = self.bubble is not None or self.y < self.floor or self.vy < 0
+        if c["folders"] and t >= c["folders"][0] and not busy:
+            c["folders"].pop(0)
+            self.chaos_folder()
+            return
+        sp = c["spree"]
+        if sp is None:
+            if t >= c["next_spree"] and not busy and t < c["dur"] - 90:
+                self.open_style()
+                if isinstance(self.bubble, StylePanel):
+                    c["spree"] = {"n": random.randint(4, 7), "next": 10, "until": t + 200}
+                else:
+                    c["next_spree"] = t + 120
+        else:
+            b = self.bubble
+            if not isinstance(b, StylePanel) or b.state == "closing":
+                c["spree"] = None
+                c["next_spree"] = t + random.randint(160, 280)
+            elif t > sp["until"]:                            # panel takıldıysa bekleme
+                b.close()
+            elif b.state == "idle":
+                sp["next"] -= 1
+                if sp["next"] <= 0:
+                    if sp["n"] <= 0:
+                        b.close()
+                    else:
+                        sp["n"] -= 1
+                        sp["next"] = random.randint(9, 15)
+                        self.chaos_click(b)
+        if t >= c["next_pal"]:
+            c["next_pal"] = t + random.randint(35, 80)
+            for f in (self.frog, self.dog):
+                if f and random.random() < 0.7:
+                    f.poke()
+            if self.dog and random.random() < 0.5:
+                self.dog.bark(random.choice(["HAU!", "HAU HAU!"]), 30)
+        if self.action == "run" and random.random() < 0.012:
+            self.dir = -self.dir                             # ani fren / geri dönüş
+        if abs(self.vx) > 3 and not self.perch:
+            cx = self.x + self.cw / 2
+            for p in list(self.props.values()):
+                if (not p.hidden and p.x - 6 <= cx <= p.x + p.pw + 6 and
+                        t - c["knocked"].get(p.kind, -999) > 45):
+                    c["knocked"][p.kind] = t
+                    p.knock(1 if self.vx > 0 else -1)
+                    self.spawn("txt", PADX + 16 * SCALE, PADT + 4 * SCALE,
+                               text=random.choice(["BAM!", "oops", "CRASH!"]), col="#e63946",
+                               size=12, life=20)
+
     # ================================================================ KÖŞE
     def arrange_corner(self):
         """Tüm masa objelerini ekranın sol / sağ alt köşesine düzenler (her tıkta taraf değişir)."""
@@ -5560,6 +5844,15 @@ class Pet:
             return self.emote_pose()
         if a == "sleep":
             return K(bdy=3, legs="sit", eyes="closed", hdy=(t // 28) % 2)
+        if a == "flop":                                     # kaostan sonra yığılır
+            s = self.a_t
+            if s < 8:
+                return K(bdy=min(3, s // 2), eyes="dizzy", mouth="open", al="u", ar="u")
+            if s % 9 == 0 and s < 70:
+                self.spawn("txt", PADX + (16 + 6 * math.cos(s)) * SCALE, PADT + 6 * SCALE,
+                           text="✦", col="#ffd23f", size=10, life=12)
+            return K(bdy=3, legs="sit", eyes="dizzy" if s < 70 else "closed", mouth="wavy",
+                     hdy=1, hdx=(0, 1, 0, -1)[(t // 10) % 4] if s < 70 else 0)
         if a == "sit":
             return K(bdy=3, legs="sit", eyes=self.eyes(), hdy=(t // 22) % 2,
                      mouth=self.mouth())
@@ -5685,6 +5978,15 @@ class Pet:
     # ================================================================== ZAMANLAYICILAR
     def timers(self):
         t = self.t
+        if self.chaos:
+            self.chaos_step()
+        elif self.chaos_fix and t >= self.chaos_fix["t"] and not (self.dragging or self.bubble):
+            self.worn.update(self.chaos_fix["worn"])
+            self.chaos_fix = None
+            self.sparkle(8)
+            self.refresh_cache()
+            self.chat("chaos_fixed", cooldown=0, gap=False)
+            self.save_soon()
         if t % 30 == 0:
             self.stats_step()
         if self.greet_t and t >= self.greet_t:
@@ -5851,7 +6153,7 @@ class Pet:
                 if res is not None:
                     key, flip = res
             else:
-                speed = {"walk": 2.4, "run": 6.2}.get(act, 0.0)
+                speed = {"walk": 2.4, "run": 9.0 if self.chaos else 6.2}.get(act, 0.0)
                 if act == "walk":                            # yorgun karakter yavaş yürür
                     speed *= 0.55 + 0.45 * self.stats["energy"] / 100.0
                 self.vx += (self.dir * speed - self.vx) * 0.14
@@ -5861,8 +6163,12 @@ class Pet:
                 lo, hi = -PADX + 4, self.sw - self.cw + PADX - 4
                 if self.x < lo:
                     self.x, self.dir = lo, 1
+                    if self.chaos:
+                        self.chaos_bonk()
                 elif self.x > hi:
                     self.x, self.dir = hi, -1
+                    if self.chaos:
+                        self.chaos_bonk()
                 if self.perch and self.perch_plat:           # tünek kenarında dön / aşağı atla
                     p = self.perch_plat
                     cxp = self.x + self.cw / 2
@@ -5980,7 +6286,7 @@ class Pet:
 
 
 if __name__ == "__main__":
-    print("Pocket Karolina v12 | Python %s | %s" % (sys.version.split()[0], sys.platform))
+    print("Pocket Karolina v13 | Python %s | %s" % (sys.version.split()[0], sys.platform))
     try:
         Pet().run()
     except Exception:
