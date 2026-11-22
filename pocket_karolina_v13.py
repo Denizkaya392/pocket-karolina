@@ -6285,8 +6285,30 @@ class Pet:
         self.root.mainloop()
 
 
+INSTANCE_PORT = 47613
+
+
+def claim_single_instance():
+    """Aynı anda tek Pocket Karolina: yerel bir portu tutar. Zaten açıksa None döner."""
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        if IS_WIN:
+            s.setsockopt(socket.SOL_SOCKET, getattr(socket, "SO_EXCLUSIVEADDRUSE", 4), 1)
+        s.bind(("127.0.0.1", INSTANCE_PORT))
+        s.listen(1)
+        return s
+    except OSError:
+        s.close()
+        return None
+
+
 if __name__ == "__main__":
     print("Pocket Karolina v13 | Python %s | %s" % (sys.version.split()[0], sys.platform))
+    _instance = claim_single_instance()
+    if _instance is None:
+        print("Pocket Karolina is already running.")
+        sys.exit(0)
     try:
         Pet().run()
     except Exception:

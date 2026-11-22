@@ -17,6 +17,13 @@ python pocket_karolina_v13.py
 On Windows you can double-click `start_pocket_karolina.bat` instead. The launcher shows any error and writes it to
 `pet_error.log`, so the window never just disappears.
 
+### Start automatically with Windows (no console window)
+
+Double-click `install_autostart.bat` once. From then on she appears by herself every time you log in to Windows,
+without the black console window, always running the newest `pocket_karolina_v*.py` in this folder. It adds a small
+`PocketKarolina.vbs` to your Startup folder (no admin rights needed). `uninstall_autostart.bat` removes it.
+Only one copy runs at a time, so opening her again by hand while she is already running does nothing.
+
 | Action | What happens |
 |---|---|
 | Click | Cuddle (raises mood and affection) |
@@ -85,6 +92,7 @@ whitelist of actions. It is meant for your local network only; do not expose the
 |---|---|
 | `pocket_karolina_v13.py` | The whole app |
 | `start_pocket_karolina.py` / `.bat` | Launcher that picks the newest `pocket_karolina_v*.py` and reports errors |
+| `autostart.py`, `install_autostart.bat`, `uninstall_autostart.bat` | Start with Windows without a console window |
 | `save.json` | Created on first run (ignored by git) |
 
 ## Notes
@@ -95,4 +103,4 @@ whitelist of actions. It is meant for your local network only; do not expose the
 ---
 
 *Türkçe özet:* Masaüstünde yaşayan küçük piksel Karolina. `python pocket_karolina_v13.py` ile çalıştır; sağ tıkla menüyü aç,
-Settings > Phone ile telefondan kontrol et. Yeni: Bag > Fun > Chaos ile kaos modu.
+Settings > Phone ile telefondan kontrol et. Yeni: Bag > Fun > Chaos ile kaos modu. Windows açılınca kendiliğinden başlasın diye bir kere install_autostart.bat'a çift tıkla.

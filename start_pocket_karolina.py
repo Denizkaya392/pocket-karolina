@@ -40,6 +40,19 @@ def wait(msg):
         time.sleep(60)
 
 
+def already_running():
+    import socket
+    try:
+        socket.create_connection(("127.0.0.1", 47613), timeout=0.5).close()
+        return True
+    except OSError:
+        return False
+
+
+if already_running():
+    wait("Pocket Karolina zaten açık (belki açılışta kendiliğinden başladı). İkinci kopya açılmadı.")
+    sys.exit(0)
+
 try:
     if not target:
         raise FileNotFoundError("pocket_karolina_v*.py bu klasörde yok")
