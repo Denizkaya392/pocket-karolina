@@ -1,7 +1,7 @@
 """
-Pocket Karolina  v13
+Pocket Karolina  v14
 ----------------------
-Çalıştırma:  python pocket_karolina_v13.py   (ya da start_pocket_karolina.bat'a çift tık)
+Çalıştırma:  python pocket_karolina_v14.py   (ya da start_pocket_karolina.bat'a çift tık)
              Ekstra kurulum yok: sadece Python + tkinter.
 
 Kontroller:
@@ -13,6 +13,12 @@ Kontroller:
            Üzerine gelince anlık önizleme, tıklayınca tak/çıkar. Emote sekmesi ifade oynatır.
   - Fun > Chaos: 30-45 sn kaos modu. Koşar, eşyaları devirir, kendi paneline tıklayıp
            kıyafet değiştirir, İndirilenler klasörünü 2-3 kez açar. Pet'e tek tık = dur.
+  - Fun > Treat: Lila'ya kuru et atar; koşup kapar, yatıp kemirir.
+  - Chat: telefondan gelen mesajlara buradan cevap ver (telefonda "Karolina" olarak görünür).
+  - Game mode: her şeyi gizler, saatin yanındaki simgeye tıklayınca geri gelir.
+    Settings > Auto hide açıksa tam ekran oyun/film açıldığında kendiliğinden saklanır.
+  - Ara sıra masaüstünde küçük sürprizler belirir; tıklayınca toplanır.
+  - Mevsimlik kostümler: yılbaşı, sevgililer günü, yaz, Cadılar Bayramı, Noel.
   - Notes: kısa not / hatırlatıcı. "18:30 anneyi ara" yazarsan saatinde hatırlatır.
   - Settings: dil (EN/TR/PL), konuşma, SAKİN MOD, pencereye tırmanma, flaş, telefon bağlantısı.
 
@@ -256,6 +262,10 @@ HATS["santa"] = (_pad([
 HATS["strawhat"] = (_pad([
     "...oooooooo...", "..oYYYYYYYYo..", "..oYrrrrrrYo..", "oooYYYYYYYYooo",
     "oYYYYYYYYYYYYYYo", "oooooooooooooooo"], 16), -2)
+HATS["witch"] = (_pad([
+    "..........oo......", ".........oao......", "........oaao......", ".......oaaao......",
+    "......oaaaao......", ".....oaaaaaao.....", ".....oaaaaaao.....", "....ouuuyyuuuo....",
+    "oooooaaaaaaaaaoooo", "oaaaaaaaaaaaaaaaao", "oooooooooooooooooo"]), -6)
 HATS["halo"] = (_pad([
     "..oooooooo..", ".oyyyyyyyyo.", "oyo......oyo", ".oyyyyyyyyo.", "..oooooooo.."]), -5)
 
@@ -317,8 +327,9 @@ BOBA = ["..o..", ".owo.", "opppo", "opppo", "oaaao", ".ooo."]
 CONE = [".ooo.", "oWWWo", "oWWGo", "ooooo", "oNMNo", ".oNo.", "..o.."]
 ROSE = [".ooo.", "orRro", "oRrRo", ".ooo.", "..v..", ".vv..", "..v..", "..v.."]
 LOLLI = [".ooo.", "oxXxo", "oXwXo", "oxXxo", ".ooo.", "..g..", "..g..", "..g.."]
+PUMPKIN = ["...v...", ".ooooo.", "ohhdhho", "oahdaho", "ohhdhho", "ohaaaho", ".ooooo."]
 HELD_SPR = {"coffee": (CUP, 2), "boba": (BOBA, -1), "icecream": (CONE, -2),
-            "rose": (ROSE, -3), "lollipop": (LOLLI, -3)}
+            "rose": (ROSE, -3), "lollipop": (LOLLI, -3), "pumpkin": (PUMPKIN, 1)}
 BALLOON_ICON = ["..ooo..", ".orrro.", "orwrrro", "orrrrro", "orrrrro", ".orrro.",
                 "..ooo..", "...o...", "...o..."]
 
@@ -332,7 +343,7 @@ for _i in OUTFITS:
     SLOT_OF[_i] = "outfit"
 for _i in NECK:
     SLOT_OF[_i] = "neck"
-for _i in ("coffee", "balloon", "boba", "icecream", "rose", "lollipop"):
+for _i in ("coffee", "balloon", "boba", "icecream", "rose", "lollipop", "pumpkin"):
     SLOT_OF[_i] = "held"
 SLOTS = ("hat", "glasses", "outfit", "neck", "held")
 
@@ -753,6 +764,24 @@ def L(txt, lang=None):
 _MENU_PAL = {"o": "#3a1f1c", "c": "#e8742a", "r": "#e63946", "p": "#ff7aa2", "y": "#ffd23f",
              "Y": "#f2a900", "b": "#3a86ff", "B": "#8fd3ff", "w": "#ffffff", "g": "#58b368",
              "u": "#8a3ffc", "k": "#9a6a35", "n": "#f6d9b8"}
+UI_TXT["tr"].update({
+    "Treat": "Kuru et", "Witch": "Cadı", "Pumpkin": "Bal kabağı", "Chat": "Sohbet",
+    "Game mode": "Oyun modu", "Auto hide": "Oto gizle", "~ Chat ~": "~ Sohbet ~", "Send": "Gönder",
+    "Close": "Kapat", "pals and games": "dostlar ve oyunlar",
+    "No messages yet. Turn on Settings > Phone\nand write from the phone, or type here!":
+        "Henüz mesaj yok. Ayarlar > Telefon'u aç,\ntelefondan yaz ya da buraya yaz!",
+    "Phone link is off: messages wait here.": "Telefon bağlantısı kapalı: mesajlar burada bekler.",
+})
+UI_TXT["pl"].update({
+    "Treat": "Gryzak", "Witch": "Wiedźma", "Pumpkin": "Dynia", "Chat": "Czat",
+    "Game mode": "Tryb gry", "Auto hide": "Auto ukryj", "~ Chat ~": "~ Czat ~", "Send": "Wyślij",
+    "Close": "Zamknij", "pals and games": "przyjaciele i gry",
+    "No messages yet. Turn on Settings > Phone\nand write from the phone, or type here!":
+        "Brak wiadomości. Włącz Opcje > Telefon\ni pisz z telefonu albo tutaj!",
+    "Phone link is off: messages wait here.": "Telefon wyłączony: wiadomości czekają tutaj.",
+})
+
+
 MENU_ICONS = {
     "dance": ["....oo...", "....o.o..", "....o..o.", "....o....", "....o....", "..ooo....",
               ".ouuo....", ".ouuo....", "..oo....."],
@@ -782,6 +811,12 @@ MENU_ICONS = {
     "back": ["...c.....", "..cc.....", ".ccccccc.", "..cc.....", "...c....."],
 }
 MENU_ICONS["calm"] = MENU_ICONS["sleep"]
+MENU_ICONS.update({
+    "msgs": [".ooooooo.", "oxxxxxxxo", "oxwwxwwxo", "oxxxxxxxo", ".oooooxo.", ".....oo..", "......o.."],
+    "hide": ["ooooooooo", "owwwwwwwo", "owwwwwwwo", "ooooooooo", "....o....", "..ooooo..",
+             "........."],
+    "autohide": ["ooooooooo", "obbbbbbbo", "obbbbbbbo", "obbbbbbbo", "ooooooooo", "...ooo..."],
+})
 MENU_ICONS.update({
     "check": ["......GG.", ".GG..GG..", "..GGGG...", "...GG...."],
     "box_off": ["ooooooooo"] + ["owwwwwwwo"] * 7 + ["ooooooooo"],
@@ -1099,7 +1134,7 @@ STYLE_TABS = [
                      ("worn", "cowboy", "Cowboy"), ("worn", "flowers", "Flowers"),
                      ("worn", "catears", "Cat Ears"), ("worn", "bow", "Big Bow"),
                      ("worn", "santa", "Santa"), ("worn", "strawhat", "Straw Hat"),
-                     ("worn", "halo", "Halo"), ("clear", "hat", "None")]),
+                     ("worn", "halo", "Halo"), ("worn", "witch", "Witch"), ("clear", "hat", "None")]),
     ("Eyes", "glasses", [("worn", "shades", "Shades"), ("worn", "hearts", "Hearts"),
                          ("worn", "specs", "Specs"), ("worn", "round", "Round"),
                          ("worn", "stars", "Stars"), ("worn", "pixel", "Deal"),
@@ -1116,6 +1151,7 @@ STYLE_TABS = [
                       ("worn", "coffee", "Coffee"), ("worn", "boba", "Boba"),
                       ("worn", "icecream", "Ice Cream"), ("worn", "rose", "Rose"),
                       ("worn", "lollipop", "Lollipop"), ("worn", "balloon", "Balloon"),
+                      ("worn", "pumpkin", "Pumpkin"),
                       ("phone", "phone", "Phone"), ("clear", "gear", "None")]),
     ("Desk", "prop", [("prop", "plant", "Plant"), ("prop", "mug", "Tea Mug"),
                       ("prop", "lamp", "Lamp"),
@@ -1126,7 +1162,7 @@ STYLE_TABS = [
     ("Emote", "emote", [("emote", e, EMOTES[e]["label"]) for e in EMOTES]),
     ("Fun", "fun", [("pal", "frog", "Frog"), ("pal", "lila", "Lila"),
                     ("game", "rps", "RPS"), ("game", "ball", "Fetch"),
-                    ("game", "chaos", "Chaos")]),
+                    ("game", "chaos", "Chaos"), ("game", "treat", "Treat")]),
 ]
 
 
@@ -1204,7 +1240,12 @@ class StylePanel(BubbleBase):
             tip = {"emote": "click an emote to play it", "fun": "pals and games"}.get(
                 STYLE_TABS[self.tab][1], "hover to preview · click to wear")
             ty = self.tile_rect((self.ROWS - 1) * self.COLS)[1] + self.TH / 2 - 6
-            self.text(M + self.bw / 2, ty, s, tip, "#b49a8a", ("Courier New", 8, "bold"))
+            n = sum(pet.found.values())
+            if STYLE_TABS[self.tab][1] == "fun" and n:
+                tip = L(tip) + "  ·  ♥ " + str(n)
+                self.text(M + self.bw / 2, ty, s, tip, "#b49a8a", ("Courier New", 8, "bold"), tr=False)
+            else:
+                self.text(M + self.bw / 2, ty, s, tip, "#b49a8a", ("Courier New", 8, "bold"))
         for (x1, y1, x2, y2), lab, j in zip(self.foot_rects(), ("Clear outfit", "Close"), (0, 1)):
             hov = (self.hover == 100 + j)
             self.pixrect(x1 - 2, y1 - 2, x2 + 2, y2 + 2, B_OUT, 4, s)
@@ -1687,6 +1728,442 @@ class NotesPanel(BubbleBase):
                 self.close()
 
 
+def tk_safe(text):
+    """Eski Tk sürümleri BMP dışı emojileri çizemez: güvenli bir karakterle değiştir."""
+    return "".join(ch if ord(ch) <= 0xFFFF else "♥" for ch in str(text))
+
+
+def wrap_text(text, width):
+    out = []
+    for para in str(text).split("\n"):
+        line = ""
+        for word in para.split(" "):
+            while len(word) > width:
+                if line:
+                    out.append(line)
+                    line = ""
+                out.append(word[:width])
+                word = word[width:]
+            if len(line) + len(word) + (1 if line else 0) > width:
+                out.append(line)
+                line = word
+            else:
+                line = (line + " " + word) if line else word
+        out.append(line)
+    return out
+
+
+class ChatPanel(BubbleBase):
+    """Telefonla yazışma: telefondan gelenler solda, buradan yazılanlar sağda."""
+    PAD, TITLE, LINE, LINES, ENT, FOOT = 12, 22, 17, 12, 28, 24
+    BW, WRAP = 360, 30
+
+    def __init__(self, pet, cx, top_y):
+        bw = self.BW + 2 * self.PAD
+        bh = (self.PAD + self.TITLE + self.LINES * self.LINE + 10 + self.ENT + 8 +
+              self.FOOT + self.PAD)
+        self.scroll = 0
+        self.entry = None
+        self.f_txt = ("Courier New", 9, "bold")
+        self.f_small = ("Courier New", 7, "bold")
+        super().__init__(pet, cx, top_y, bw, bh)
+
+    def log_rect(self):
+        x = self.M + self.PAD
+        y = self.M + self.PAD + self.TITLE
+        return x, y, x + self.BW, y + self.LINES * self.LINE + 6
+
+    def ent_rect(self):
+        x1, _y1, _x2, y2 = self.log_rect()
+        return x1, y2 + 6, x1 + self.BW - 70, y2 + 6 + self.ENT
+
+    def send_rect(self):
+        x1, y1, x2, y2 = self.ent_rect()
+        return x2 + 6, y1, self.M + self.PAD + self.BW, y2
+
+    def foot_rect(self):
+        y = self.M + self.bh - self.PAD - self.FOOT
+        return self.M + self.PAD, y, self.M + self.PAD + self.BW, y + self.FOOT
+
+    def lines(self):
+        """(kimden, satır, saat|None) listesi, eskiden yeniye."""
+        out = []
+        for m in self.pet.inbox[-40:]:
+            who = m.get("from", "phone")
+            parts = wrap_text(tk_safe(m["text"]), self.WRAP)
+            stamp = time.strftime("%H:%M", time.localtime(m.get("ts", 0)))
+            for i, ln in enumerate(parts):
+                out.append((who, ln, stamp if i == len(parts) - 1 else None, i == 0))
+        return out
+
+    def on_ready(self):
+        x1, y1, x2, y2 = self.ent_rect()
+        self.entry = tk.Entry(self.cv, font=("Courier New", 10, "bold"), bg=B_FILL,
+                              fg=TXT, relief="flat", highlightthickness=2,
+                              highlightbackground=B_OUT, highlightcolor=TITLE_C,
+                              insertbackground=TXT)
+        self.cv.create_window(x1, y1, window=self.entry, anchor="nw",
+                              width=x2 - x1, height=y2 - y1, tags="entry")
+        self.entry.bind("<Return>", lambda e: self.submit())
+        self.entry.bind("<Escape>", lambda e: self.close())
+        try:
+            self.entry.focus_force()
+        except tk.TclError:
+            pass
+
+    def keep_open(self):
+        return self.entry is not None
+
+    def submit(self):
+        if not self.entry:
+            return
+        txt = self.entry.get().strip()
+        if txt:
+            self.pet.send_from_pc(txt)
+            self.entry.delete(0, "end")
+            self.scroll = 0
+
+    def on_closing(self):
+        if self.entry is not None:
+            try:
+                self.entry.destroy()
+            except tk.TclError:
+                pass
+            self.entry = None
+
+    def content(self, s, t):
+        M = self.M
+        self.text(M + self.bw / 2, M + self.PAD + 8, s, "~ Chat ~", TITLE_C,
+                  ("Courier New", 11, "bold"))
+        x1, y1, x2, y2 = self.log_rect()
+        self.pixrect(x1 - 2, y1 - 2, x2 + 2, y2 + 2, B_OUT, 4, s)
+        self.pixrect(x1, y1, x2, y2, "#fffaf4", 3, s)
+        ls = self.lines()
+        if not ls:
+            self.text((x1 + x2) / 2, (y1 + y2) / 2, s,
+                      "No messages yet. Turn on Settings > Phone\nand write from the phone, or type here!",
+                      "#a08a7a", ("Courier New", 9, "bold"))
+        self.scroll = max(0, min(self.scroll, max(0, len(ls) - self.LINES)))
+        end = len(ls) - self.scroll
+        vis = ls[max(0, end - self.LINES):end]
+        col = {"phone": "#a3214f", "pet": "#8a7a6e", "pc": "#2b4a8a"}
+        band = {"phone": "#ffe9ef", "pc": "#e4edff", "pet": "#f6efe8"}
+        for i, (who, ln, stamp, first) in enumerate(vis):
+            y = y1 + 4 + i * self.LINE + self.LINE / 2
+            self.rect(x1 + 3, y - self.LINE / 2 + 1, x2 - 3, y + self.LINE / 2, band.get(who, B_FILL), s)
+            if who == "pc":
+                self.text(x2 - 8, y, s, ln, col["pc"], self.f_txt, "e", tr=False)
+                if stamp:
+                    self.text(x1 + 8, y, s, stamp, "#c0b0a4", self.f_small, "w", tr=False)
+            else:
+                pre = ("• " if who == "pet" else "♥ ") if first else "  "
+                self.text(x1 + 8, y, s, pre + ln, col.get(who, TXT), self.f_txt, "w", tr=False)
+                if stamp:
+                    self.text(x2 - 8, y, s, stamp, "#c0b0a4", self.f_small, "e", tr=False)
+        if not self.pet.remote:
+            self.text(M + self.bw / 2, y2 - 9, s, "Phone link is off: messages wait here.",
+                      "#c0907a", self.f_small)
+        sx1, sy1, sx2, sy2 = self.send_rect()
+        hov = self.hover == 200
+        self.pixrect(sx1 - 2, sy1 - 2, sx2 + 2, sy2 + 2, B_OUT, 4, s)
+        self.pixrect(sx1, sy1, sx2, sy2, BTN_HOVER if hov else BTN_ON, 3, s)
+        self.text((sx1 + sx2) / 2, (sy1 + sy2) / 2, s, "Send", TXT, ("Courier New", 9, "bold"))
+        fx1, fy1, fx2, fy2 = self.foot_rect()
+        hov = self.hover == 300
+        self.pixrect(fx1 - 2, fy1 - 2, fx2 + 2, fy2 + 2, B_OUT, 4, s)
+        self.pixrect(fx1, fy1, fx2, fy2, BTN_HOVER if hov else BTN_FILL, 3, s)
+        self.text((fx1 + fx2) / 2, (fy1 + fy2) / 2, s, "Close", TXT, ("Courier New", 9, "bold"))
+
+    def hit(self, x, y):
+        for k, (x1, y1, x2, y2) in (("send", self.send_rect()), ("foot", self.foot_rect())):
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                return k
+        return None
+
+    def on_move(self, e):
+        if self.state != "idle":
+            return
+        k = self.hit(e.x, e.y)
+        self.hover = {"send": 200, "foot": 300}.get(k, -1)
+        self.cv.config(cursor="hand2" if k else "")
+
+    def on_wheel(self, d):
+        self.scroll -= d
+
+    def on_click(self, e):
+        if self.state != "idle":
+            return
+        k = self.hit(e.x, e.y)
+        if k == "send":
+            self.submit()
+        elif k == "foot":
+            self.close()
+
+
+# ===========================================================================
+#  OYUN MODU: tepsi simgesi (Windows), tam ekran algılama
+# ===========================================================================
+HEAD_ICON = [
+    "....oooooooo....",
+    "..oohhhhhhhhoo..",
+    ".ohhhHHHhhhhhho.",
+    "ohhHHhhhhhhhhhho",
+    "ohhhhhsssshhhhho",
+    "ohhhsssssssshhho",
+    "ohhsssssssssshho",
+    "ohhsEessssEeshho",
+    "ohhsEessssEeshho",
+    "ohhpssssssssphho",
+    "ohhssssmmsssshho",
+    "ohdhsssssssshdho",
+    "odhhoossssoohhdo",
+    "odhho..oo..ohhdo",
+    ".odo........odo.",
+    "..o..........o..",
+]
+
+
+def head_icon_grid():
+    """Karolina'nın kafası, 16x16 (tepsi simgesi için)."""
+    return [r.ljust(16, ".")[:16] for r in HEAD_ICON]
+
+
+def write_ico(path, grid, pal):
+    """16 ve 32 piksellik 32-bit ICO dosyası yazar (harici kütüphane yok)."""
+    import struct
+
+    def rgba(ch):
+        if ch not in pal:
+            return (0, 0, 0, 0)
+        c = pal[ch].lstrip("#")
+        return (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16), 255)
+
+    imgs = []
+    for sc in (1, 2):
+        n = 16 * sc
+        px = bytearray()
+        for y in range(n - 1, -1, -1):                       # BMP: alttan yukarı
+            row = grid[y // sc]
+            for x in range(n):
+                r, g, b, a = rgba(row[x // sc] if x // sc < len(row) else ".")
+                px += bytes((b, g, r, a))
+        mask = bytes(((n + 31) // 32) * 4 * n)
+        hdr = struct.pack("<IiiHHIIiiII", 40, n, n * 2, 1, 32, 0, len(px) + len(mask), 0, 0, 0, 0)
+        imgs.append((n, hdr + bytes(px) + mask))
+    out = struct.pack("<HHH", 0, 1, len(imgs))
+    off = 6 + 16 * len(imgs)
+    for n, data in imgs:
+        out += struct.pack("<BBBBHHII", n, n, 0, 0, 1, 32, len(data), off)
+        off += len(data)
+    for _n, data in imgs:
+        out += data
+    with open(path, "wb") as f:
+        f.write(out)
+    return path
+
+
+class TrayIcon:
+    """Windows bildirim alanı (saat yanındaki küçük simgeler) için ctypes ile simge.
+    Tk'nin olay döngüsü pencere mesajlarını dağıttığı için ayrı iş parçacığı gerekmez."""
+    WM_TRAY = 0x8000 + 17
+
+    def __init__(self, root, ico_path, tip, on_click):
+        import ctypes
+        from ctypes import wintypes
+        self.ct, self.on_click, self.root = ctypes, on_click, root
+        u32, sh = ctypes.windll.user32, ctypes.windll.shell32
+        self.u32, self.sh = u32, sh
+        LRESULT = ctypes.c_ssize_t
+        WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT, wintypes.WPARAM,
+                                     wintypes.LPARAM)
+        u32.DefWindowProcW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+        u32.DefWindowProcW.restype = LRESULT
+
+        def proc(hwnd, msg, wp, lp):
+            if msg == self.WM_TRAY and (lp & 0xFFFF) in (0x0202, 0x0203, 0x0205, 0x0405):
+                try:
+                    self.root.after(10, self.on_click)
+                except Exception:
+                    pass
+                return 0
+            return u32.DefWindowProcW(hwnd, msg, wp, lp)
+
+        self._proc = WNDPROC(proc)
+
+        class WNDCLASSW(ctypes.Structure):
+            _fields_ = [("style", wintypes.UINT), ("lpfnWndProc", WNDPROC), ("cbClsExtra", ctypes.c_int),
+                        ("cbWndExtra", ctypes.c_int), ("hInstance", wintypes.HINSTANCE),
+                        ("hIcon", wintypes.HICON), ("hCursor", wintypes.HANDLE),
+                        ("hbrBackground", wintypes.HBRUSH), ("lpszMenuName", wintypes.LPCWSTR),
+                        ("lpszClassName", wintypes.LPCWSTR)]
+
+        class NOTIFYICONDATAW(ctypes.Structure):
+            _fields_ = [("cbSize", wintypes.DWORD), ("hWnd", wintypes.HWND), ("uID", wintypes.UINT),
+                        ("uFlags", wintypes.UINT), ("uCallbackMessage", wintypes.UINT),
+                        ("hIcon", wintypes.HICON), ("szTip", ctypes.c_wchar * 128),
+                        ("dwState", wintypes.DWORD), ("dwStateMask", wintypes.DWORD),
+                        ("szInfo", ctypes.c_wchar * 256), ("uVersion", wintypes.UINT),
+                        ("szInfoTitle", ctypes.c_wchar * 64), ("dwInfoFlags", wintypes.DWORD),
+                        ("guidItem", ctypes.c_byte * 16), ("hBalloonIcon", wintypes.HICON)]
+
+        self.NID = NOTIFYICONDATAW
+        ctypes.windll.kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+        hinst = ctypes.windll.kernel32.GetModuleHandleW(None)
+        u32.DestroyIcon.argtypes = [wintypes.HANDLE]
+        u32.DestroyWindow.argtypes = [wintypes.HWND]
+        cls = WNDCLASSW()
+        cls.lpfnWndProc = self._proc
+        cls.hInstance = hinst
+        cls.lpszClassName = "PocketKarolinaTray"
+        u32.RegisterClassW(ctypes.byref(cls))                # zaten kayıtlıysa sorun değil
+        u32.CreateWindowExW.restype = wintypes.HWND
+        u32.CreateWindowExW.argtypes = [wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD,
+                                        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                        wintypes.HWND, wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID]
+        self.hwnd = u32.CreateWindowExW(0, "PocketKarolinaTray", "PocketKarolinaTray", 0,
+                                        0, 0, 0, 0, None, None, hinst, None)
+        if not self.hwnd:
+            raise OSError("tray window")
+        u32.LoadImageW.restype = wintypes.HANDLE
+        u32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int,
+                                   ctypes.c_int, wintypes.UINT]
+        self.hicon = u32.LoadImageW(None, ico_path, 1, 0, 0, 0x10 | 0x40)   # LOADFROMFILE|DEFAULTSIZE
+        nid = self.nid = NOTIFYICONDATAW()
+        nid.cbSize = ctypes.sizeof(NOTIFYICONDATAW)
+        nid.hWnd, nid.uID = self.hwnd, 1
+        nid.uFlags = 0x1 | 0x2 | 0x4                         # MESSAGE | ICON | TIP
+        nid.uCallbackMessage = self.WM_TRAY
+        nid.hIcon = self.hicon
+        nid.szTip = tip[:127]
+        sh.Shell_NotifyIconW.argtypes = [wintypes.DWORD, ctypes.c_void_p]
+        if not sh.Shell_NotifyIconW(0, ctypes.byref(nid)):  # NIM_ADD
+            self.remove()
+            raise OSError("Shell_NotifyIcon")
+
+    def balloon(self, title, text):
+        try:
+            n = self.nid
+            n.uFlags = 0x10                                  # NIF_INFO
+            n.szInfoTitle, n.szInfo, n.dwInfoFlags = title[:63], text[:255], 0x4 | 0x20
+            self.sh.Shell_NotifyIconW(1, self.ct.byref(n))   # NIM_MODIFY
+        except Exception:
+            pass
+
+    def remove(self):
+        try:
+            self.sh.Shell_NotifyIconW(2, self.ct.byref(self.nid))   # NIM_DELETE
+        except Exception:
+            pass
+        for fn, h in (("DestroyIcon", getattr(self, "hicon", None)),
+                      ("DestroyWindow", getattr(self, "hwnd", None))):
+            if h:
+                try:
+                    getattr(self.u32, fn)(h)
+                except Exception:
+                    pass
+
+
+class RestoreChip:
+    """Tepsi simgesi kurulamazsa: ekranın sağ altında küçük bir kafa, tıklayınca geri gelir."""
+
+    def __init__(self, pet):
+        self.pet = pet
+        w = self.win = tk.Toplevel(pet.root)
+        w.overrideredirect(True)
+        w.wm_attributes("-topmost", True)
+        make_transparent(w)
+        self.img = grid_to_image(head_icon_grid(), PAL, False, 2)
+        cv = tk.Canvas(w, width=32, height=32, bg=KEY, highlightthickness=0, cursor="hand2")
+        cv.pack()
+        cv.create_image(0, 0, anchor="nw", image=self.img)
+        cv.bind("<Button-1>", lambda e: pet.set_hidden(None))
+        w.geometry(f"+{pet.sw - 44}+{pet.sh - 92}")
+
+    def remove(self):
+        try:
+            self.win.destroy()
+        except tk.TclError:
+            pass
+
+
+_FS = {}
+
+
+def fullscreen_app_active():
+    """Öndeki pencere tüm monitörü kaplıyor ve çerçevesizse (oyun, film, F11) True.
+    Desteklenmeyen sistemde None."""
+    if not IS_WIN:
+        return None
+    try:
+        import ctypes
+        from ctypes import wintypes
+        if not _FS:
+            u = ctypes.windll.user32
+            u.GetForegroundWindow.restype = wintypes.HWND
+            u.MonitorFromWindow.restype = wintypes.HANDLE
+            u.MonitorFromWindow.argtypes = [wintypes.HWND, wintypes.DWORD]
+            u.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
+            u.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
+            u.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+            u.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+
+            class MONITORINFO(ctypes.Structure):
+                _fields_ = [("cbSize", wintypes.DWORD), ("rcMonitor", wintypes.RECT),
+                            ("rcWork", wintypes.RECT), ("dwFlags", wintypes.DWORD)]
+            u.GetMonitorInfoW.argtypes = [wintypes.HANDLE, ctypes.POINTER(MONITORINFO)]
+            _FS.update(u=u, MI=MONITORINFO, w=wintypes, c=ctypes)
+        u, wt, ct = _FS["u"], _FS["w"], _FS["c"]
+        hwnd = u.GetForegroundWindow()
+        if not hwnd:
+            return False
+        pid = wt.DWORD(0)
+        u.GetWindowThreadProcessId(hwnd, ct.byref(pid))
+        if pid.value == os.getpid():
+            return False
+        buf = ct.create_unicode_buffer(64)
+        u.GetClassNameW(hwnd, buf, 64)
+        if buf.value in ("Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd"):
+            return False
+        if (u.GetWindowLongW(hwnd, -16) & 0x00C00000) == 0x00C00000:   # başlık çubuğu var: normal pencere
+            return False
+        r = wt.RECT()
+        u.GetWindowRect(hwnd, ct.byref(r))
+        mi = _FS["MI"]()
+        mi.cbSize = ct.sizeof(mi)
+        if not u.GetMonitorInfoW(u.MonitorFromWindow(hwnd, 2), ct.byref(mi)):
+            return False
+        m = mi.rcMonitor
+        return r.left <= m.left and r.top <= m.top and r.right >= m.right and r.bottom >= m.bottom
+    except Exception:
+        return None
+
+
+# ===========================================================================
+#  MEVSİMLİK KOSTÜMLER
+# ===========================================================================
+SEASONS = [   # (kimlik, başlangıç (ay, gün), bitiş (ay, gün), kostüm)
+    ("newyear", (12, 31), (1, 1), {"hat": "party", "glasses": "stars", "held": "balloon"}),
+    ("valentine", (2, 10), (2, 14), {"glasses": "hearts", "outfit": "heart", "held": "rose"}),
+    ("summer", (7, 1), (8, 31), {"hat": "strawhat", "glasses": "shades", "held": "icecream"}),
+    ("halloween", (10, 25), (11, 1), {"hat": "witch", "held": "pumpkin"}),
+    ("christmas", (12, 15), (12, 26), {"hat": "santa", "outfit": "sweater", "neck": "scarf"}),
+]
+
+
+def season_of(day):
+    """O güne denk gelen mevsim: (kimlik, tekil anahtar, kostüm) ya da None."""
+    md = (day.month, day.day)
+    for sid, a, b, look in SEASONS:
+        if a <= b:
+            inside = a <= md <= b
+        else:                                               # yıl dönümünü aşan aralık
+            inside = md >= a or md <= b
+        if inside:
+            year = day.year - 1 if (a > b and md <= b) else day.year
+            return sid, "%s-%d" % (sid, year), look
+    return None
+
+
 # ===========================================================================
 #  POLAROID (selfie sonucu)
 # ===========================================================================
@@ -2114,6 +2591,8 @@ class Dog(Companion):
         self.say_t = 0
         self.say_text = ""
         self.free, self.fetch = False, None           # getir oyunu: tasmasız mod
+        self.chew = None                                # kuru et kemirme
+        self.crumbs = []
         self.font = tkfont.Font(family="Courier New", size=10, weight="bold")
 
     def grid(self, pose):
@@ -2294,19 +2773,93 @@ class Dog(Companion):
         f["stage"] = "wait"
         return ("stand", 0, "closed", wag)
 
+    # ------------------------------------------------------------ KURU ET
+    def begin_chew(self):
+        self.free, self.fetch = True, None
+        self.chew = {"stage": "chase", "t": 0, "dur": random.randint(480, 660)}
+
+    def chew_step(self, floor):
+        pet, c, tr = self.pet, self.chew, self.pet.treat
+        c["t"] += 1
+        wag = (self.t // 4) % 2
+        if self.y < floor - 0.5 or self.vy < 0:             # havada (dürtüldü / zıpladı)
+            self.vy += 1.0
+            self.y += self.vy
+            if self.y >= floor:
+                self.y, self.vy = floor, 0.0
+            return ("walk", int(self.t * 0.5) % 4, "open", wag)
+        self.y = floor
+        cx = self.x + self.fw / 2
+        st = c["stage"]
+        if tr is None and st in ("chase", "sniff", "chew"):
+            st = c["stage"] = "home"
+        if st == "chase":
+            self.run_to(tr.cx + (tr.vx * 5 if not tr.rest else 0), 9.5)
+            if abs(tr.cx - cx) < 26 and tr.by >= tr.floor() - 6:
+                tr.taken = True
+                c["stage"], c["t"] = "sniff", 0
+                self.vx = 0.0
+                self.say_text, self.say_t = "*sniff*", 30
+            elif c["t"] > 700:                               # ulaşamadı: vazgeç
+                tr.taken = True
+                c["stage"], c["t"] = "chew", 0
+            return self.gait()
+        if st == "sniff":
+            self.vx *= 0.5
+            if c["t"] > 22:
+                c["stage"], c["t"] = "chew", 0
+                self.bark("HAU!", 30)
+            return ("stand", 0, "closed" if (c["t"] // 4) % 2 else "tongue", wag)
+        if st == "chew":
+            self.vx = 0.0
+            if c["t"] % 7 == 0:                             # kırıntılar
+                mx, my = self.chew_mouth()
+                self.crumbs.append([mx + random.uniform(-6, 6), my + 4, random.uniform(-1.2, 1.2),
+                                    random.uniform(-2.5, -0.5), 22])
+            if c["t"] % 150 == 75:
+                self.say_text, self.say_t = random.choice(["nom nom", "*chomp*", "*gnaw*", "mmm!"]), 40
+            if c["t"] >= c["dur"]:
+                c["stage"], c["t"] = "happy", 0
+                pet.on_treat_done()
+                self.bark("HAU HAU!", 45)
+            gnaw = (c["t"] // 5) % 2
+            self.lift = gnaw * 1.5
+            return ("lie", 0, "open" if gnaw else "closed", (self.t // 10) % 2)
+        if st == "happy":
+            self.lift = 8 * abs(math.sin(c["t"] * 0.3))
+            if c["t"] > 45:
+                c["stage"], c["t"] = "home", 0
+            return ("stand", 0, "tongue", wag)
+        ox = pet.x + pet.cw / 2                              # tasmaya geri dön
+        fdir = -1 if pet.face_left else 1
+        dx = self.run_to(ox + fdir * self.REST, 7.0)
+        if abs(dx) < 22 or c["t"] > 900:
+            self.free, self.chew = False, None
+            self.vx *= 0.5
+        return self.gait()
+
+    def chew_mouth(self):
+        col = 22 if self.face > 0 else DGW - 22
+        return self.x + col * self.GS, self.y - self.lift + 11 * self.GS
+
+    def stop_chew(self):
+        if self.chew:
+            self.chew = {"stage": "home", "t": 0, "dur": 0}
+
     def update(self):
-        if not self.free or not self.fetch:
+        if not self.free or not (self.fetch or self.chew):
             self.free = False
+            self.crumbs = []
             return super().update()
         pet = self.pet
         self.t += 1
         self.lift = 0.0
         floor = pet.ground + pet.ch - self.fh
-        pose = self.fetch_step(floor)
+        pose = self.chew_step(floor) if self.chew else self.fetch_step(floor)
         if not self.free:                                   # tasmaya döndü: normal moda geç
             return super().update()
         self.x = max(0.0, min(pet.sw - self.fw, self.x))
-        tm, pad = self.top_margin(), 8
+        tm, pad = self.top_margin(), (26 if self.chew else 8)
         ay = self.y - self.lift
         minx, miny = int(self.x - pad), int(ay - tm - pad)
         w, h = int(self.fw + 2 * pad), int(self.fh + tm + 2 * pad)
@@ -2322,6 +2875,26 @@ class Dog(Companion):
         self.cv.delete("all")
         self.cv.create_image(self.x - minx, ay - miny, anchor="nw",
                              image=self.img(pose, self.face < 0))
+        c = self.chew
+        if c and c["stage"] == "chew":                      # ağızdaki çubuk, kemirdikçe kısalır
+            n = max(3, 7 - int(4.5 * c["t"] / max(1, c["dur"])))
+            col = 21 if self.face > 0 else DGW - 21             # burnun ucundan yere doğru
+            self.cv.create_image(self.x + col * self.GS - minx, ay + 10 * self.GS - miny,
+                                 anchor="nw" if self.face > 0 else "ne",
+                                 image=chew_image(n, self.face > 0))
+        for cr in self.crumbs[:]:
+            cr[0] += cr[2]
+            cr[1] += cr[3]
+            cr[3] += 0.35
+            cr[4] -= 1
+            if cr[4] <= 0:
+                self.crumbs.remove(cr)
+                continue
+            x, y = cr[0] - minx, min(cr[1], self.y + self.fh - 3) - miny
+            self.cv.create_rectangle(x, y, x + 3, y + 3, fill="#9a6a35", outline="")
+        if c:
+            self.extra(self.cv, minx, miny)
+            return
         if self.fetch["stage"] == "return" and pet.ball and pet.ball.carried:
             mx, my = self.mouth_xy()
             self.cv.create_image(mx - minx, my - miny, anchor="center",
@@ -2658,12 +3231,181 @@ CHAOS_ICON = ["....oooo..", "...oyyyo..", "..oyyyo...", ".oyyyoooo.", "oyyyyyyyo
 _CHAOS_IMG = []
 
 
+TREAT = [".oooooooooo.", "oNMNMNMNMNNo", ".oooooooooo."]
+CHEW = [".....oo", "....oNo", "...oMo.", "..oNo..", ".oMo...", "oNo....", "oo....."]
+_TREAT_IMG = {}
+
+
+def treat_image(n=10, scale=3, vertical=False):
+    """Kuru et çubuğu; n = kalan uzunluk (kemirdikçe kısalır)."""
+    k = (n, scale, vertical)
+    if k not in _TREAT_IMG:
+        rows = [r[:n + 1] + ("." if i != 1 else "o") for i, r in enumerate(TREAT)] if n < 10 else TREAT
+        if vertical:
+            rows = ["".join(r[i] for r in rows) for i in range(len(rows[0]))]
+        _TREAT_IMG[k] = grid_to_image(rows, PAL, False, scale)
+    return _TREAT_IMG[k]
+
+
+def chew_image(n=7, flip=False, scale=3):
+    """Lila'nın patileri arasında tuttuğu çapraz çubuk; n satır kalır (alttan kısalır)."""
+    k = ("chew", n, flip, scale)
+    if k not in _TREAT_IMG:
+        rows = CHEW[:n]
+        _TREAT_IMG[k] = grid_to_image(rows, PAL, flip, scale)
+    return _TREAT_IMG[k]
+
+
 def game_icon(iid):
+    if iid == "treat":
+        return treat_image(10, 3)
     if iid == "chaos":
         if not _CHAOS_IMG:
             _CHAOS_IMG.append(grid_to_image(CHAOS_ICON, {"o": "#3a1f1c", "y": "#ffd23f"}, False, 3))
         return _CHAOS_IMG[0]
     return hand_image("scissors", 2) if iid == "rps" else ball_image(0, 3)
+
+
+class Treat:
+    """Lila için atılan kuru et: uçar, sekip yere düşer; Lila alınca gizlenir."""
+    W = 36
+
+    def __init__(self, pet, x, by, vx, vy):
+        self.pet = pet
+        w = self.win = tk.Toplevel(pet.root)
+        w.overrideredirect(True)
+        w.wm_attributes("-topmost", True)
+        make_transparent(w)
+        self.cv = tk.Canvas(w, width=self.W, height=self.W, bg=KEY, highlightthickness=0)
+        self.cv.pack()
+        self.item = self.cv.create_image(self.W // 2, self.W, anchor="s")
+        self.x, self.by, self.vx, self.vy = float(x), float(by), float(vx), float(vy)
+        self.rest = self.taken = False
+        self.t = 0
+        self._geo = self._img = None
+        self.update()
+
+    @property
+    def cx(self):
+        return self.x + self.W / 2
+
+    def floor(self):
+        return self.pet.ground + self.pet.ch
+
+    def update(self):
+        self.t += 1
+        if self.taken:
+            if self._geo != "+-3000+-3000":
+                self._geo = "+-3000+-3000"
+                self.win.geometry(self._geo)
+            return
+        fl = self.floor()
+        if not self.rest:
+            self.vy += 1.0
+            self.x += self.vx
+            self.by += self.vy
+            hi = self.pet.sw - self.W
+            if self.x < 0 or self.x > hi:
+                self.x, self.vx = max(0.0, min(float(hi), self.x)), -self.vx * 0.6
+            if self.by >= fl:
+                self.by = fl
+                self.vy = -self.vy * 0.35 if self.vy > 4 else 0.0
+                self.vx *= 0.7
+                if self.vy == 0.0 and abs(self.vx) < 0.4:
+                    self.rest, self.vx = True, 0.0
+        else:
+            self.by = fl
+        img = treat_image(10, 3, vertical=(not self.rest and (self.t // 4) % 2 == 1))
+        if img is not self._img:
+            self._img = img
+            self.cv.itemconfig(self.item, image=img)
+        geo = f"+{round(self.x)}+{round(self.by) - self.W}"
+        if geo != self._geo:
+            self._geo = geo
+            self.win.geometry(geo)
+
+    def destroy(self):
+        try:
+            self.win.destroy()
+        except tk.TclError:
+            pass
+
+
+# ===========================================================================
+#  MASAÜSTÜ SÜRPRİZLERİ (ara sıra beliren, tıklayınca toplanan küçük hediyeler)
+# ===========================================================================
+SURPRISE_PAL = {"o": "#3a1f1c", "r": "#ff5c7a", "R": "#d93a5a", "y": "#ffd23f", "Y": "#e0a400",
+                "g": "#62c79d", "G": "#2a9d5c", "w": "#ffffff", "p": "#ff9ebd", "u": "#8a3ffc",
+                "b": "#6c7bff", "c": "#fff4ea"}
+SURPRISES = {
+    "flower": ["..ooo..", ".oppo..", "opyypo.", ".oppo..", "..oGo..", ".oGGo..", "..oGo.."],
+    "heart": [".oo.oo.", "orrorro", "orwrrRo", "orrrrRo", ".orrRo.", "..oRo..", "...o..."],
+    "star": ["...o...", "..oyo..", "ooyyyoo", "oyyyyYo", ".oyyYo.", "oyYoYYo", "oo...oo"],
+    "candy": ["o.....o", "pooooop", "opwprpo", "oprpwpo", "pooooop", "o.....o"],
+    "clover": [".oo.oo.", "ogGogGo", ".ooGoo.", "ogGogGo", ".oo.oo.", "...o...", "...o..."],
+    "gift": ["..o.o..", "ooouooo", "orruRro", "ooouooo", "orruRro", "orruRro", "ooooooo"],
+}
+_SURP_IMG = {}
+
+
+def surprise_image(kind, scale=3):
+    k = (kind, scale)
+    if k not in _SURP_IMG:
+        g = SURPRISES[kind]
+        w = max(len(r) for r in g)
+        _SURP_IMG[k] = grid_to_image([r.ljust(w, ".") for r in g], SURPRISE_PAL, False, scale)
+    return _SURP_IMG[k]
+
+
+class Surprise:
+    W, H = 30, 34
+    LIFE = 4 * 60 * 30                                       # ~4 dk sonra kaybolur
+
+    def __init__(self, pet, kind, x):
+        self.pet, self.kind = pet, kind
+        w = self.win = tk.Toplevel(pet.root)
+        w.overrideredirect(True)
+        w.wm_attributes("-topmost", True)
+        make_transparent(w)
+        self.cv = tk.Canvas(w, width=self.W, height=self.H, bg=KEY, highlightthickness=0,
+                            cursor="hand2")
+        self.cv.pack()
+        self.item = self.cv.create_image(self.W // 2, self.H, anchor="s",
+                                         image=surprise_image(kind))
+        self.cv.bind("<Button-1>", lambda e: self.pet.collect_surprise(self, True))
+        self.x = float(x)
+        self.t = 0
+        self.pet_ok = random.random() < 0.5                # karakter yürürken kendisi de alabilir
+        self.gone = False
+        self._geo = None
+        self.update()
+
+    @property
+    def cx(self):
+        return self.x + self.W / 2
+
+    def update(self):
+        """False dönerse süresi bitti."""
+        self.t += 1
+        if self.t > self.LIFE:
+            return False
+        bob = round(2 * math.sin(self.t * 0.08))
+        if self.t < 12:                                     # yerden fırlar
+            bob = -int(16 * math.sin(math.pi * self.t / 12))
+        blink = self.t > self.LIFE - 90 and (self.t // 6) % 2
+        y = self.pet.ground + self.pet.ch - self.H + bob
+        geo = "+-3000+-3000" if blink else f"+{round(self.x)}+{y}"
+        if geo != self._geo:
+            self._geo = geo
+            self.win.geometry(geo)
+        return True
+
+    def destroy(self):
+        self.gone = True
+        try:
+            self.win.destroy()
+        except tk.TclError:
+            pass
 
 
 class Ball:
@@ -3169,6 +3911,55 @@ LINES = {
 
 # Eksik anahtar olursa İngilizceye düş (yeni dil eklemek kolay olsun)
 LINES["en"].update({
+    "treat_throw": ["Lila! Catch!", "Who wants a treat?", "Go get it, Lila!"],
+    "treat_done": ["Good girl, Lila ♥", "All gone? Wow.", "She loved it!", "So gay, she ate it all!"],
+    "treat_busy": ["Let her finish first!", "She's still chewing ♥"],
+    "surprise_new": ["Ooh, what's that?", "Something appeared!", "A little surprise ♥"],
+    "found": ["Found it!", "Mine!", "Ooh, pretty!", "Yay, a surprise!"],
+    "poke_phone": ["Someone's thinking of you ♥", "Psst! A poke from the phone ♥", "Boop! You got poked ♥"],
+    "poke_log": ["*poke* ♥"],
+    "hide_tip": ["I'm hiding here. Click me to come back ♥"],
+    "unhide": ["I'm back! ♥", "Did you win?", "Missed me?"],
+    "chat_hint": ["(Right-click me > Chat to reply)"],
+    "season_newyear": ["Happy New Year! ♥", "New year, new me!"],
+    "season_valentine": ["Happy Valentine's ♥", "Be my valentine? ♥"],
+    "season_summer": ["Summer time!", "Ice cream weather!"],
+    "season_halloween": ["Boo! Happy Halloween!", "Trick or treat!"],
+    "season_christmas": ["Merry Christmas! ♥", "Ho ho ho!", "It's so gay and festive!"]})
+LINES["tr"].update({
+    "treat_throw": ["Lila! Yakala!", "Kim kuru et ister?", "Hadi al, Lila!"],
+    "treat_done": ["Aferin Lila ♥", "Hepsi bitti mi? Vay.", "Bayıldı!", "So gay, hepsini yedi!"],
+    "treat_busy": ["Önce bitirsin!", "Hâlâ kemiriyor ♥"],
+    "surprise_new": ["Ooo, bu ne?", "Bir şey belirdi!", "Küçük bir sürpriz ♥"],
+    "found": ["Buldum!", "Benim!", "Ooo, ne güzel!", "Yaşasın, sürpriz!"],
+    "poke_phone": ["Biri seni düşünüyor ♥", "Psst! Telefondan dürtüldün ♥", "Bip! Dürtüldün ♥"],
+    "poke_log": ["*dürt* ♥"],
+    "hide_tip": ["Burada saklanıyorum. Geri gelmem için tıkla ♥"],
+    "unhide": ["Geldim! ♥", "Kazandın mı?", "Özledin mi?"],
+    "chat_hint": ["(Cevap için bana sağ tıkla > Sohbet)"],
+    "season_newyear": ["Mutlu yıllar! ♥", "Yeni yıl, yeni ben!"],
+    "season_valentine": ["Sevgililer günün kutlu olsun ♥", "Sevgilim olur musun? ♥"],
+    "season_summer": ["Yaz geldi!", "Dondurma havası!"],
+    "season_halloween": ["Böö! Mutlu Cadılar Bayramı!", "Şeker mi şaka mı!"],
+    "season_christmas": ["Mutlu Noeller! ♥", "Ho ho ho!", "Çok so gay ve bayramlık!"]})
+LINES["pl"].update({
+    "treat_throw": ["Lila! Łap!", "Kto chce gryzaka?", "Leć, Lila!"],
+    "treat_done": ["Dobra dziewczynka, Lila ♥", "Wszystko zjedzone? Wow.", "Uwielbia to!",
+                   "So gay, zjadła wszystko!"],
+    "treat_busy": ["Niech najpierw skończy!", "Jeszcze gryzie ♥"],
+    "surprise_new": ["Ooo, co to?", "Coś się pojawiło!", "Mała niespodzianka ♥"],
+    "found": ["Mam!", "Moje!", "Ooo, śliczne!", "Hura, niespodzianka!"],
+    "poke_phone": ["Ktoś o tobie myśli ♥", "Psst! Szturchnięcie z telefonu ♥", "Pik! Szturch ♥"],
+    "poke_log": ["*szturch* ♥"],
+    "hide_tip": ["Chowam się tutaj. Kliknij, żebym wróciła ♥"],
+    "unhide": ["Jestem! ♥", "Wygrałeś?", "Tęskniłeś?"],
+    "chat_hint": ["(Kliknij mnie prawym > Czat, by odpisać)"],
+    "season_newyear": ["Szczęśliwego Nowego Roku! ♥", "Nowy rok, nowa ja!"],
+    "season_valentine": ["Szczęśliwych Walentynek ♥", "Będziesz moją walentynką? ♥"],
+    "season_summer": ["Lato!", "Pogoda na lody!"],
+    "season_halloween": ["Buu! Wesołego Halloween!", "Cukierek albo psikus!"],
+    "season_christmas": ["Wesołych Świąt! ♥", "Ho ho ho!", "Tak so gay i świątecznie!"]})
+LINES["en"].update({
     "chaos_start": ["CHAOS TIME!", "Hehehe... chaos!", "So gay! CHAOS!", "Nobody can stop me!"],
     "chaos_oops": ["Oops! Downloads!", "Hehe, what's this folder?", "Oopsie ♥", "Did I do that?"],
     "chaos_end": ["*pant pant*", "Okay... I'm done.", "That was so gay! ♥", "Worth it."],
@@ -3254,6 +4045,7 @@ def open_folder(path):
 # ===========================================================================
 SAVE_VERSION = 9
 DEFAULT_PREFS = {"lang": "en", "chatter": True, "calm": False, "climb": True, "flash": True,
+                 "autohide": True, "chat_hint": True,
                  "remind_every": 240, "corner": "left",
                  "remote": False, "lan": True, "port": 8765, "token": ""}
 
@@ -3342,7 +4134,7 @@ def load_save(path):
                                               0, 0, 10 ** 6)) for r in ("win", "lose", "draw")}
                               for g in GAME_NAMES}}
     out["inbox"] = [{"text": clean_text(m["text"], MAX_MSG), "ts": num(m.get("ts"), 0.0, 0.0, 4e9),
-                     "from": "pet" if m.get("from") == "pet" else "phone"}
+                     "from": m.get("from") if m.get("from") in ("pet", "pc") else "phone"}
                     for m in raw.get("inbox", []) if isinstance(m, dict) and isinstance(m.get("text"), str)
                     and clean_text(m["text"], MAX_MSG)][-60:]
     pres = []
@@ -3353,6 +4145,16 @@ def load_save(path):
                 pres.append({"name": nm, "worn": {sl: (o["worn"].get(sl) if SLOT_OF.get(o["worn"].get(sl)) == sl
                                                        else None) for sl in SLOTS}})
     out["outfits"] = pres[:MAX_PRESETS]
+    fd = raw.get("found") if isinstance(raw.get("found"), dict) else {}
+    out["found"] = {k: int(num(fd.get(k), 0, 0, 10 ** 6)) for k in SURPRISES}
+
+    def look(d):
+        d = d if isinstance(d, dict) else {}
+        return {sl: (d.get(sl) if SLOT_OF.get(d.get(sl)) == sl else None) for sl in SLOTS if sl in d}
+    se = raw.get("season") if isinstance(raw.get("season"), dict) else {}
+    out["season"] = {"key": str(se.get("key", ""))[:32]}
+    if isinstance(se.get("prev"), dict) and isinstance(se.get("look"), dict):
+        out["season"].update(prev=look(se["prev"]), look=look(se["look"]))
     out["prefs"] = prefs
     return out
 
@@ -3427,8 +4229,8 @@ def avatar_png(worn, scale=6, pose="idle"):
     return data
 
 
-REMOTE_ACTIONS = ("dance", "wave", "kiss", "hug", "jump", "spin", "selfie", "sleep",
-                  "chaos") + tuple(EMOTES)
+REMOTE_ACTIONS = ("poke", "dance", "wave", "kiss", "hug", "jump", "spin", "selfie", "sleep",
+                  "treat", "chaos") + tuple(EMOTES)
 MAX_BODY, MAX_MSG = 2048, 140
 RPS_NAMES = ('rock', 'paper', 'scissors')
 GAME_NAMES = ('rps', 'ttt', 'mem')
@@ -3695,6 +4497,7 @@ h2{font-size:12px;margin:14px 0 6px;color:var(--acc);text-transform:uppercase;le
 .row{display:flex;gap:8px;margin-top:8px}.row>*{flex:1}input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:3px solid var(--ink);border-radius:8px;padding:10px}
 #log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0 10px}
 .b{max-width:82%;padding:8px 11px;border:3px solid var(--ink);border-radius:12px;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:2px 2px 0 var(--ink)}
+.b.pc{align-self:flex-start;background:#dcebff;border-bottom-left-radius:3px}.b.pc i{display:block;font-style:normal;font-size:10px;opacity:.6;margin-bottom:2px}
 .b.me{align-self:flex-end;background:var(--me);border-bottom-right-radius:3px}.b.pet{align-self:flex-start;background:var(--card);border-bottom-left-radius:3px}
 .b small{display:block;font-size:10px;opacity:.55;margin-top:2px}.empty{margin:auto;text-align:center;opacity:.6;font-size:13px}
 #comp{flex:none;padding:8px 0 10px;border-top:3px dashed var(--ink);background:var(--bg)}
@@ -3727,20 +4530,20 @@ h2{font-size:12px;margin:14px 0 6px;color:var(--acc);text-transform:uppercase;le
 <script>
 var Q=new URLSearchParams(location.search),K=Q.get('k')||'',S=null,TAB=0,SL=['hat','glasses','outfit','neck','held'],G=null,pickedSeq=-1,mode='msg',sig='',avsrc='';
 var EM=['love','wow','wink','shy','laugh','super','cry','angry','dizzy','shock'];
-var EJ={chaos:'🌪️',dance:'💃',wave:'👋',kiss:'😘',hug:'🤗',jump:'🦘',spin:'🌀',selfie:'🤳',sleep:'😴',love:'😍',wow:'🤩',wink:'😉',shy:'🥰',laugh:'😂',super:'🌈',cry:'😭',angry:'😠',dizzy:'😵',shock:'😱'};
-var AL={en:{chaos:'Chaos!',dance:'Dance',wave:'Wave',kiss:'Kiss',hug:'Hug',jump:'Jump',spin:'Spin',selfie:'Selfie',sleep:'Sleep',love:'Love',wow:'Wow',wink:'Wink',shy:'Shy',laugh:'Laugh',super:'Super!',cry:'Cry',angry:'Grr',dizzy:'Dizzy',shock:'Shock',Actions:'Actions',Emotes:'Emotes'},
-tr:{chaos:'Kaos!',dance:'Dans',wave:'El salla',kiss:'Öp',hug:'Sarıl',jump:'Zıpla',spin:'Dön',selfie:'Selfie',sleep:'Uyu',love:'Aşk',wow:'Vay',wink:'Göz kır',shy:'Utan',laugh:'Gül',super:'Süper!',cry:'Ağla',angry:'Grr',dizzy:'Sersem',shock:'Şok',Actions:'Hareketler',Emotes:'İfadeler'},
-pl:{chaos:'Chaos!',dance:'Taniec',wave:'Pomachaj',kiss:'Buziak',hug:'Przytul',jump:'Skok',spin:'Obrót',selfie:'Selfie',sleep:'Spać',love:'Miłość',wow:'Wow',wink:'Mrugnij',shy:'Wstyd',laugh:'Śmiech',super:'Super!',cry:'Płacz',angry:'Grr',dizzy:'Zawrót',shock:'Szok',Actions:'Ruchy',Emotes:'Emocje'}};
+var EJ={poke:'👉',treat:'🦴',chaos:'🌪️',dance:'💃',wave:'👋',kiss:'😘',hug:'🤗',jump:'🦘',spin:'🌀',selfie:'🤳',sleep:'😴',love:'😍',wow:'🤩',wink:'😉',shy:'🥰',laugh:'😂',super:'🌈',cry:'😭',angry:'😠',dizzy:'😵',shock:'😱'};
+var AL={en:{poke:'Poke ♥',treat:'Lila treat',chaos:'Chaos!',dance:'Dance',wave:'Wave',kiss:'Kiss',hug:'Hug',jump:'Jump',spin:'Spin',selfie:'Selfie',sleep:'Sleep',love:'Love',wow:'Wow',wink:'Wink',shy:'Shy',laugh:'Laugh',super:'Super!',cry:'Cry',angry:'Grr',dizzy:'Dizzy',shock:'Shock',Actions:'Actions',Emotes:'Emotes'},
+tr:{poke:'Dürt ♥',treat:'Lila’ya et',chaos:'Kaos!',dance:'Dans',wave:'El salla',kiss:'Öp',hug:'Sarıl',jump:'Zıpla',spin:'Dön',selfie:'Selfie',sleep:'Uyu',love:'Aşk',wow:'Vay',wink:'Göz kır',shy:'Utan',laugh:'Gül',super:'Süper!',cry:'Ağla',angry:'Grr',dizzy:'Sersem',shock:'Şok',Actions:'Hareketler',Emotes:'İfadeler'},
+pl:{poke:'Szturchnij ♥',treat:'Gryzak Lili',chaos:'Chaos!',dance:'Taniec',wave:'Pomachaj',kiss:'Buziak',hug:'Przytul',jump:'Skok',spin:'Obrót',selfie:'Selfie',sleep:'Spać',love:'Miłość',wow:'Wow',wink:'Mrugnij',shy:'Wstyd',laugh:'Śmiech',super:'Super!',cry:'Płacz',angry:'Grr',dizzy:'Zawrót',shock:'Szok',Actions:'Ruchy',Emotes:'Emocje'}};
 function al(n){return ((AL[(S&&S.lang)||'en']||AL.en)[n])||n}
 var T={en:{Chat:'Chat',Outfit:'Outfit',Games:'Games',Play:'Play',Message:'Message',Note:'Note',send:'Send',none:'None',off:'Pocket K is offline',Saved:'Saved outfits',Save:'Save',name:'Outfit name',write:'Write something sweet...',notew:'18:30 Drink water',
 empty:'Say hi! The pet will show your message on the desktop.',back:'‹ Back',rps:'Rock Paper Scissors',ttt:'Tic-Tac-Toe',mem:'Memory',rpsd:'Duel or vs pet',tttd:'You vs the pet',memd:'Find the pairs',
-duel:'Duel is on! Pick your move',solo:'You vs Pocket K',locked:'Locked in ✓ waiting for the reveal...',win:'You win!',lose:'Pocket K wins!',draw:'Draw!',you:'You',them:'Them',yt:'Your turn ♥',pt:'Pocket K is thinking...',again:'Play again',moves:'Moves',won:'Score',sent:'Sent ♥',ok:'✓',Hats:'Hats',Eyes:'Eyes',Wear:'Wear',Neck:'Neck',Hand:'Hand'},
+newmsg:'New message!',duel:'Duel is on! Pick your move',solo:'You vs Pocket K',locked:'Locked in ✓ waiting for the reveal...',win:'You win!',lose:'Pocket K wins!',draw:'Draw!',you:'You',them:'Them',yt:'Your turn ♥',pt:'Pocket K is thinking...',again:'Play again',moves:'Moves',won:'Score',sent:'Sent ♥',ok:'✓',Hats:'Hats',Eyes:'Eyes',Wear:'Wear',Neck:'Neck',Hand:'Hand'},
 tr:{Chat:'Sohbet',Outfit:'Kıyafet',Games:'Oyunlar',Play:'Oyna',Message:'Mesaj',Note:'Not',send:'Gönder',none:'Yok',off:'Pocket K çevrimdışı',Saved:'Kayıtlı kombinler',Save:'Kaydet',name:'Kombin adı',write:'Tatlı bir şey yaz...',notew:'18:30 Su iç',
 empty:'Merhaba de! Mesajın masaüstünde görünür.',back:'‹ Geri',rps:'Taş Kağıt Makas',ttt:'XOX',mem:'Hafıza',rpsd:'Düello ya da pete karşı',tttd:'Sen ve pet',memd:'Çiftleri bul',
-duel:'Düello başladı! Hamleni seç',solo:'Sen ve Pocket K',locked:'Seçildi ✓ sonuç bekleniyor...',win:'Sen kazandın!',lose:'Pocket K kazandı!',draw:'Berabere!',you:'Sen',them:'O',yt:'Sıra sende ♥',pt:'Pocket K düşünüyor...',again:'Tekrar oyna',moves:'Hamle',won:'Skor',sent:'Gönderildi ♥',ok:'✓',Hats:'Şapka',Eyes:'Gözlük',Wear:'Kıyafet',Neck:'Boyun',Hand:'El'},
+newmsg:'Yeni mesaj!',duel:'Düello başladı! Hamleni seç',solo:'Sen ve Pocket K',locked:'Seçildi ✓ sonuç bekleniyor...',win:'Sen kazandın!',lose:'Pocket K kazandı!',draw:'Berabere!',you:'Sen',them:'O',yt:'Sıra sende ♥',pt:'Pocket K düşünüyor...',again:'Tekrar oyna',moves:'Hamle',won:'Skor',sent:'Gönderildi ♥',ok:'✓',Hats:'Şapka',Eyes:'Gözlük',Wear:'Kıyafet',Neck:'Boyun',Hand:'El'},
 pl:{Chat:'Czat',Outfit:'Strój',Games:'Gry',Play:'Zabawa',Message:'Wiadomość',Note:'Notatka',send:'Wyślij',none:'Brak',off:'Pocket K jest offline',Saved:'Zapisane stroje',Save:'Zapisz',name:'Nazwa stroju',write:'Napisz coś miłego...',notew:'18:30 Napij się wody',
 empty:'Powiedz cześć! Wiadomość pojawi się na pulpicie.',back:'‹ Wróć',rps:'Kamień Papier Nożyce',ttt:'Kółko i krzyżyk',mem:'Memory',rpsd:'Pojedynek lub z petem',tttd:'Ty kontra pet',memd:'Znajdź pary',
-duel:'Pojedynek! Wybierz ruch',solo:'Ty kontra Pocket K',locked:'Wybrano ✓ czekamy na wynik...',win:'Wygrałaś!',lose:'Pocket K wygrywa!',draw:'Remis!',you:'Ty',them:'On',yt:'Twój ruch ♥',pt:'Pocket K myśli...',again:'Jeszcze raz',moves:'Ruchy',won:'Wynik',sent:'Wysłano ♥',ok:'✓',Hats:'Czapki',Eyes:'Okulary',Wear:'Ubranie',Neck:'Szyja',Hand:'Ręka'}};
+newmsg:'Nowa wiadomość!',duel:'Pojedynek! Wybierz ruch',solo:'Ty kontra Pocket K',locked:'Wybrano ✓ czekamy na wynik...',win:'Wygrałaś!',lose:'Pocket K wygrywa!',draw:'Remis!',you:'Ty',them:'On',yt:'Twój ruch ♥',pt:'Pocket K myśli...',again:'Jeszcze raz',moves:'Ruchy',won:'Wynik',sent:'Wysłano ♥',ok:'✓',Hats:'Czapki',Eyes:'Okulary',Wear:'Ubranie',Neck:'Szyja',Hand:'Ręka'}};
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return '&#'+c.charCodeAt(0)+';'})}
 function tx(k){return (T[(S&&S.lang)||'en']||T.en)[k]||k}
@@ -3769,7 +4572,8 @@ function scrollLog(force){var l=$('log');if(force||l.scrollHeight-l.scrollTop-l.
 function renderChat(){var c=S.chat||[],s=JSON.stringify(c);if(s===sig)return;sig=s;
 var h=c.length?'':'<div class="empty">'+esc(tx('empty'))+'</div>';
 c.forEach(function(m){var d=new Date(m.ts*1000),t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-h+='<div class="b '+(m.from=='pet'?'pet':'me')+'">'+esc(m.text)+'<small>'+t+'</small></div>'});$('log').innerHTML=h;scrollLog(true)}
+h+='<div class="b '+(m.from=='pet'?'pet':m.from=='pc'?'pc':'me')+'">'+(m.from=='pc'?'<i>💻 Karolina</i>':'')+esc(m.text)+'<small>'+t+'</small></div>'});$('log').innerHTML=h;scrollLog(true);
+var pcs=c.filter(function(m){return m.from=='pc'}).length;if(renderChat.pc!==undefined&&pcs>renderChat.pc){toast('💌 '+tx('newmsg'));try{navigator.vibrate(120)}catch(e){}}renderChat.pc=pcs}
 $('send').onclick=function(){var v=$('msg').value.trim();if(!v)return;
 api(mode=='note'?'/api/note':'/api/message',{text:v}).then(function(){$('msg').value='';$('msg').style.height='46px';toast(tx('sent'));happy();setTimeout(refresh,500)}).catch(function(){toast('!')})};
 /* ---- outfit */
@@ -3855,7 +4659,8 @@ showTab(0);refresh();setInterval(function(){if(!(TAB==2&&(G=='mem'||G=='ttt')))r
 MAIN_ITEMS = [("♪", "Dance", "dance"), ("☾", "Sleep", "sleep"), ("♥", "Kiss", "kiss"),
               ("☺", "Wave", "wave"), ("↑", "Jump", "jump"), ("↻", "Spin", "spin"),
               ("»", "Run", "run"), ("♡", "Hug", "hug"), ("✿", "Bag", "bag"),
-              ("✎", "Notes", "notes"), ("⚙", "Settings", "settings"), ("×", "Quit", "quit")]
+              ("✎", "Notes", "notes"), ("✉", "Chat", "msgs"), ("◐", "Game mode", "hide"),
+              ("⚙", "Settings", "settings"), ("×", "Quit", "quit")]
 
 VISIT_ENERGY = {"chair": 0.9, "radio": -0.4, "mug": 0.3, "cupcake": 0.8, "teddy": 0.6}   # obje kullanırken enerji
 AFF_DECAY = 0.18          # ilgi: saniyede düşüş (ilgilenilmezse)
@@ -3943,6 +4748,11 @@ class Pet:
         self.emote = None             # oynayan emote kimliği
         self.chaos = None             # kaos modu durumu (dict) ya da None
         self.chaos_fix = None         # kaos sonrası kıyafeti toparlama zamanlayıcısı
+        self.treat = None             # Lila'ya atılan kuru et
+        self.surprises = []           # masaüstündeki küçük hediyeler
+        self.hidden = None            # oyun modu: None | "manual" | "auto"
+        self.tray = None
+        self.fs_t = 0
         self.skip_land = None         # (pencere id, bitiş tick'i): kısa süre tekrar konma
         self.climb = None
         self.climbing = False
@@ -3967,12 +4777,15 @@ class Pet:
         self.games = d["games"]
         self.inbox = d["inbox"]
         self.presets = d["outfits"]
+        self.found = d["found"]
+        self.season = d["season"]
         self.phone_rps = {"seq": 0}
         self.apply_offline(d["saved_at"])
         self.check_date()
         interval = self.prefs["remind_every"] * 30
         self.next_remind = int(interval * random.uniform(0.7, 1.3))
         self.first_run = not d["saved_at"]
+        self.next_surprise = random.randint(3 * 60 * 30, 7 * 60 * 30)
         self.greet_t = 70 if d["saved_at"] else 60
         self.away_hours = max(0.0, (time.time() - d["saved_at"]) / 3600) if d["saved_at"] else 0
 
@@ -4003,6 +4816,7 @@ class Pet:
             except Exception:
                 self.prefs["remote"] = False
                 self.log_error()
+        self.season_check(quiet=True)
         self.refresh_cache()
         self.tick()
 
@@ -4019,6 +4833,7 @@ class Pet:
                       "phone": {g: dict(v) for g, v in self.games["phone"].items()}},
             "outfits": [{"name": o["name"], "worn": dict(o["worn"])} for o in self.presets],
             "inbox": [dict(m) for m in self.inbox],
+            "found": dict(self.found), "season": dict(self.season),
         }
 
     def save(self):
@@ -4084,6 +4899,8 @@ class Pet:
 
     # ======================================================= KONUŞMA / REPLİK
     def say(self, text, dur=100, kind="say"):
+        if self.hidden:
+            return
         if self.speech:
             self.speech.destroy()
         self.speech = Speech(self, text, kind, dur)
@@ -4222,6 +5039,8 @@ class Pet:
         if kind == "game":
             if iid == "chaos":
                 return bool(self.chaos)
+            if iid == "treat":
+                return bool(self.treat or (self.dog and self.dog.chew))
             return iid == "ball" and bool(self.ball_game)
         return False
 
@@ -4292,6 +5111,7 @@ class Pet:
         else:
             if self.dog:
                 self.end_ball(quiet=True)
+                self.drop_treat()
                 self.dog.destroy()
                 self.dog = None
             else:
@@ -4478,6 +5298,12 @@ class Pet:
             self.phone_rps_move(cmd[1])
         elif kind == "outfit":
             self.remote_outfit(cmd[1], cmd[2])
+        elif kind == "action" and cmd[1] == "poke":
+            self.phone_poke()
+        elif kind == "action" and self.hidden:
+            pass                                             # oyun modunda: gösteri yok
+        elif kind == "action" and cmd[1] == "treat":
+            self.throw_treat()
         elif kind == "action" and cmd[1] == "chaos":
             self.toggle_chaos()
         elif kind == "action":
@@ -4494,14 +5320,48 @@ class Pet:
 
     def receive_message(self, text):
         self.chat_log("phone", text)
-        self.chat_log("pet", pick_line(self.prefs["lang"], random.choice(("poke", "poke", "hug", "kiss"))))
-        self.say(text, min(420, 150 + len(text) * 4), "love")
+        last_pc = max((m["ts"] for m in self.inbox if m.get("from") == "pc"), default=0)
+        if time.time() - last_pc > 900:                     # PC başında kimse yazmıyorsa tatlı cevap
+            self.chat_log("pet", pick_line(self.prefs["lang"], random.choice(("poke", "poke", "hug", "kiss"))))
+        if isinstance(self.bubble, ChatPanel):              # sohbet açık: zaten görünüyor
+            self.love(aff=4, mood=3)
+            self.save_soon()
+            return
+        hint = ""
+        if self.prefs.get("chat_hint"):
+            self.prefs["chat_hint"] = False
+            hint = "\n" + pick_line(self.prefs["lang"], "chat_hint")
+        self.say("✉ " + tk_safe(text) + hint, min(420, 150 + len(text) * 4), "love")
         for _ in range(4):
             self.spawn("heart", PADX + random.choice([4, 12, 20, 28]) * SCALE, PADT + 6 * SCALE)
         self.love(aff=6, mood=5)
         self.react_t = 36
         if self.action == "sleep":
             self.a_dur = 0
+        self.save_soon()
+
+    def send_from_pc(self, text):
+        text = clean_text(text, MAX_MSG)
+        if not text:
+            return
+        self.chat_log("pc", text)
+        for _ in range(2):
+            self.spawn("heart", PADX + 16 * SCALE, PADT + 8 * SCALE)
+        self.publish_remote()
+        self.save_soon()
+
+    def phone_poke(self):
+        self.chat_log("phone", pick_line(self.prefs["lang"], "poke_log"))
+        if self.hidden:
+            self.save_soon()
+            return
+        self.say(pick_line(self.prefs["lang"], "poke_phone"), 170, "love")
+        for _ in range(5):
+            self.spawn("heart", PADX + random.choice([4, 12, 20, 28]) * SCALE, PADT + 6 * SCALE)
+        self.love(aff=5, mood=4)
+        if not (self.dragging or self.climbing or self.visit or self.menu_open or self.chaos or self.perch):
+            self.start("jump", user=False)
+        self.react_t = 40
         self.save_soon()
 
     def save_preset(self, name):
@@ -4580,7 +5440,8 @@ class Pet:
         climb_lab = "Climb" if self.watcher.available() else "Climb n/a"
         return [("A", lambda: L("Lang") + ": " + self.prefs["lang"].upper(), "lang"),
                 ("…", "Chatter", "chat"), ("☾", "Calm", "calm"), ("▲", climb_lab, "climb"),
-                ("✦", "Flash", "flash"), ("☎", "Phone", "remote"), ("✉", "Link", "pair"),
+                ("✦", "Flash", "flash"), ("◐", "Auto hide", "autohide"),
+                ("☎", "Phone", "remote"), ("✉", "Link", "pair"),
                 ("‹", "Back", "back")]
 
     def use_item(self, cid):
@@ -4602,6 +5463,8 @@ class Pet:
                 self.climbing = False
         elif cid == "flash":
             p["flash"] = not p["flash"]
+        elif cid == "autohide":
+            p["autohide"] = not p["autohide"]
         elif cid == "remote":
             if self.remote:
                 self.stop_remote()
@@ -4611,7 +5474,8 @@ class Pet:
 
     def pref_on(self, cid):
         return {"chat": self.prefs["chatter"], "calm": self.prefs["calm"], "climb": self.prefs["climb"],
-                "flash": self.prefs["flash"], "remote": bool(self.remote)}.get(cid, False)
+                "flash": self.prefs["flash"], "remote": bool(self.remote),
+                "autohide": self.prefs["autohide"]}.get(cid, False)
 
     # ----- menü açma
     def _anchor(self):
@@ -4638,12 +5502,19 @@ class Pet:
         cx, top = self._anchor()
         self.bubble = NotesPanel(self, cx, top)
 
+    def open_chat(self):
+        if self.bubble:
+            return
+        self.menu_open = True
+        cx, top = self._anchor()
+        self.bubble = ChatPanel(self, cx, top)
+
     def open_settings(self):
         if self.bubble:
             return
         self.menu_open = True
         cx, top = self._anchor()
-        stay = ("lang", "chat", "calm", "climb", "flash", "remote")
+        stay = ("lang", "chat", "calm", "climb", "flash", "autohide", "remote")
         self.bubble = Bubble(self, cx, top, self.settings_items(), "~ Settings ~", cols=2,
                              btnw=144, equipped=self.pref_on, stay=lambda c: c in stay)
 
@@ -4654,9 +5525,17 @@ class Pet:
     def bubble_closed(self, choice):
         self.bubble = None
         self.preview.clear()
-        nxt = {"bag": self.open_style, "notes": self.open_notes,
+        nxt = {"bag": self.open_style, "notes": self.open_notes, "msgs": self.open_chat,
                "settings": self.open_settings, "back": self.open_main}
         nxt["game_rps"] = self.open_rps
+        if choice == "game_treat":
+            self.menu_open = False
+            self.root.after(40, self.throw_treat)
+            return
+        if choice == "hide":
+            self.menu_open = False
+            self.root.after(120, lambda: self.set_hidden("manual"))
+            return
         if choice == "game_chaos":
             self.menu_open = False
             self.root.after(40, self.toggle_chaos)
@@ -4683,8 +5562,15 @@ class Pet:
 
     def shutdown(self):
         self.save()
+        if self.tray:
+            self.tray.remove()
+            self.tray = None
         if self.remote_tr:
             self.remote_tr.stop()
+        if self.treat:
+            self.treat.destroy()
+        for sp in self.surprises:
+            sp.destroy()
         if self.ball:
             self.ball.destroy()
         for c in (self.frog, self.dog):
@@ -5438,6 +6324,226 @@ class Pet:
         self.save_soon()
         self.refresh_cache()
 
+    # ================================================================ KURU ET
+    def throw_treat(self):
+        if self.hidden or self.dragging:
+            return
+        if self.treat or (self.dog and self.dog.chew):
+            self.chat("treat_busy", force=True, cooldown=0, gap=False)
+            return
+        self.end_ball(quiet=True)
+        if not self.dog:
+            self.dog = Dog(self)
+            self.save_soon()
+        hx = self.x + self.cw / 2 + self.dir * 20
+        self.treat = Treat(self, hx - Treat.W / 2, self.y + PADT + 20 * SCALE,
+                           self.dir * random.uniform(7.5, 12.5), -random.uniform(10, 13))
+        self.dog.begin_chew()
+        self.chat("treat_throw", force=True, cooldown=0, gap=False, dur=70)
+        self.root.after(300, lambda: self.dog and self.dog.bark("HAU!", 30))
+        if not (self.perch or self.climbing or self.visit):
+            self.start("wave", 40)
+
+    def on_treat_done(self):
+        if self.treat:
+            self.treat.destroy()
+            self.treat = None
+        self.love(aff=3, mood=5)
+        self.chat("treat_done", force=True, cooldown=0, gap=False, dur=90)
+        for _ in range(3):
+            self.spawn("heart", PADX + 16 * SCALE, PADT + 10 * SCALE)
+        self.save_soon()
+
+    def drop_treat(self):
+        if self.treat:
+            self.treat.destroy()
+            self.treat = None
+        if self.dog:
+            self.dog.stop_chew()
+
+    # ============================================================ SÜRPRİZLER
+    def surprise_step(self):
+        for sp in self.surprises[:]:
+            if not sp.update():
+                sp.destroy()
+                self.surprises.remove(sp)
+            elif (sp.pet_ok and abs(self.vx) > 0.7 and not (self.dragging or self.perch or self.climbing)
+                  and self.y >= self.ground - 1 and abs(sp.cx - (self.x + self.cw / 2)) < 16):
+                self.collect_surprise(sp, False)
+        if self.t >= self.next_surprise:
+            self.next_surprise = self.t + random.randint(6 * 60 * 30, 14 * 60 * 30)
+            if not (self.prefs["calm"] or self.chaos or len(self.surprises) >= 2):
+                self.spawn_surprise()
+
+    def spawn_surprise(self, kind=None):
+        px = self.x + self.cw / 2
+        for _ in range(8):
+            x = random.randint(60, max(70, self.sw - 100))
+            if abs(x - px) > 220:
+                break
+        sp = Surprise(self, kind or random.choice(list(SURPRISES)), x)
+        self.surprises.append(sp)
+        self.chat("surprise_new", cooldown=600)
+        return sp
+
+    def collect_surprise(self, sp, by_user):
+        if sp.gone or sp not in self.surprises:
+            return
+        self.surprises.remove(sp)
+        sp.destroy()
+        self.found[sp.kind] = self.found.get(sp.kind, 0) + 1
+        n = sum(self.found.values())
+        self.bump(mood=4)
+        self.love(aff=2 if by_user else 0, mood=0)
+        self.sparkle(6)
+        self.save_soon()
+        if self.hidden:
+            return
+        self.say(pick_line(self.prefs["lang"], "found") + "  ♥ " + str(n), 90)
+        self.react_t = 30
+        self.save_soon()
+
+    # ============================================================ MEVSİMLER
+    def season_check(self, quiet=False):
+        if self.chaos or self.chaos_fix:
+            return
+        cur = season_of(datetime.date.today())
+        st = self.season
+        if cur and st.get("key") != cur[1]:
+            sid, key, look = cur
+            prev = {sl: self.worn.get(sl) for sl in look}
+            self.worn.update(look)
+            self.season = {"key": key, "prev": prev, "look": dict(look)}
+            self.refresh_cache()
+            self.save_soon()
+            if not quiet:
+                self.sparkle(8)
+            self.greet_season = sid
+        elif not cur and st.get("prev"):
+            look = st.get("look") or {}
+            if all(self.worn.get(sl) == v for sl, v in look.items()):   # hâlâ kostümdeyse geri al
+                self.worn.update(st["prev"])
+                self.refresh_cache()
+            self.season = {"key": st.get("key", "")}
+            self.save_soon()
+
+    # ============================================================ OYUN MODU
+    def all_windows(self):
+        ws = [self.root]
+        ws += [p.win for p in self.props.values()]
+        ws += [c.win for c in (self.frog, self.dog, self.ball, self.treat) if c]
+        ws += [sp.win for sp in self.surprises]
+        if self.speech:
+            ws.append(self.speech.win)
+        if self.bubble:
+            ws.append(self.bubble.win)
+        return ws
+
+    def set_hidden(self, mode):
+        if mode == self.hidden:
+            return
+        if mode:
+            if self.bubble:
+                self.bubble.close()
+            if self.chaos:                                    # kaos sessizce biter, kıyafet geri
+                self.worn.update(self.chaos["worn"])
+                self.chaos = None
+                self.refresh_cache()
+            if self.speech:
+                self.speech.destroy()
+                self.speech = None
+            self.dragging = False
+            for w in self.all_windows():
+                try:
+                    w.withdraw()
+                except tk.TclError:
+                    pass
+            self.hidden = mode
+            if mode == "manual":
+                self.make_tray()
+            self.save_soon()
+        else:
+            if self.tray:
+                self.tray.remove()
+                self.tray = None
+            self.hidden = None
+            for w in self.all_windows():
+                try:
+                    w.deiconify()
+                    w.wm_attributes("-topmost", True)
+                except tk.TclError:
+                    pass
+            self._geo = None
+            for o in list(self.props.values()) + [c for c in (self.frog, self.dog, self.ball, self.treat) if c]:
+                o._geo = None
+            for sp in self.surprises:
+                sp._geo = None
+            self._next_t = None
+            self.chat("unhide", force=True, cooldown=0, gap=False, dur=70)
+            if not (self.perch or self.climbing):
+                self.start("wave", 45)
+
+    def make_tray(self):
+        tip = pick_line(self.prefs["lang"], "hide_tip")
+        if IS_WIN:
+            try:
+                import tempfile
+                ico = write_ico(os.path.join(tempfile.gettempdir(), "pocket_karolina_tray.ico"),
+                                head_icon_grid(), PAL)
+                self.tray = TrayIcon(self.root, ico, "Pocket Karolina", lambda: self.set_hidden(None))
+                self.tray.balloon("Pocket Karolina", tip)
+                return
+            except Exception:
+                self.log_error()
+        self.tray = RestoreChip(self)
+
+    def fullscreen_step(self):
+        """Saniyede bir: tam ekran uygulama öndeyse saklan, çıkınca geri gel."""
+        if not self.prefs["autohide"] or self.hidden == "manual" or self.dragging:
+            return
+        fs = fullscreen_app_active()
+        if fs is None:
+            return
+        if fs and not self.hidden:
+            self.set_hidden("auto")
+        elif not fs and self.hidden == "auto":
+            self.set_hidden(None)
+
+    def poll_instance(self):
+        """İkinci kez açılmaya çalışıldıysa (bat / kısayol): gizliyse geri gel."""
+        sock = globals().get("INSTANCE_SOCK", [None])[0]
+        if sock is None:
+            return
+        try:
+            conn, _a = sock.accept()
+        except (BlockingIOError, OSError):
+            return
+        try:
+            conn.settimeout(0.3)
+            msg = conn.recv(16)
+        except OSError:
+            msg = b""
+        finally:
+            conn.close()
+        if msg.startswith(b"show") and self.hidden:
+            self.set_hidden(None)
+
+    def hidden_step(self):
+        """Gizliyken: çizim yok, sadece arka plan işleri."""
+        self.t += 1
+        t = self.t
+        if t % 15 == 0:
+            self.poll_instance()
+        if t % 30 == 0:
+            self.stats_step()
+            self.fullscreen_step()
+        if self.remote and t % 6 == 0:
+            self.remote.drain(self)
+        if t % 240 == 0:
+            self.publish_remote()
+        if (self.dirty and t - self.last_save >= 90) or t - self.last_save >= 900:
+            self.save()
+
     # ================================================================ KAOS
     def calm_worn(self):
         """Kaos sırasında / toparlanmadan önce kaydedilecek asıl kıyafet."""
@@ -5978,6 +7084,19 @@ class Pet:
     # ================================================================== ZAMANLAYICILAR
     def timers(self):
         t = self.t
+        if t % 30 == 5:
+            self.poll_instance()
+        if t % 30 == 15 and IS_WIN:
+            self.fullscreen_step()
+            if self.hidden:
+                return
+        if t % 900 == 450:
+            self.season_check()
+        if getattr(self, "greet_season", None) and t > 90 and not self.speech:
+            self.chat("season_" + self.greet_season, force=True, cooldown=0, gap=False, dur=130)
+            self.greet_season = None
+        if not self.dragging:
+            self.surprise_step()
         if self.chaos:
             self.chaos_step()
         elif self.chaos_fix and t >= self.chaos_fix["t"] and not (self.dragging or self.bubble):
@@ -6036,6 +7155,14 @@ class Pet:
 
     def tick(self):
         """Kare döngüsü: tek bir hata tüm uygulamayı dondurmasın."""
+        if self.hidden:
+            try:
+                self.hidden_step()
+            except Exception:
+                self.log_error()
+            self._next_t = None
+            self.root.after(TICK_MS, self.tick)
+            return
         try:
             self._tick()
             self.err_streak = 0
@@ -6232,6 +7359,8 @@ class Pet:
         if self.ball:
             self.ball.update()
             self.ball_game_step()
+        if self.treat:
+            self.treat.update()
         self.schedule()
 
     def schedule(self):
@@ -6286,6 +7415,7 @@ class Pet:
 
 
 INSTANCE_PORT = 47613
+INSTANCE_SOCK = [None]          # ana kopyanın dinlediği yerel soket (ikinci açılış "show" yollar)
 
 
 def claim_single_instance():
@@ -6296,7 +7426,9 @@ def claim_single_instance():
         if IS_WIN:
             s.setsockopt(socket.SOL_SOCKET, getattr(socket, "SO_EXCLUSIVEADDRUSE", 4), 1)
         s.bind(("127.0.0.1", INSTANCE_PORT))
-        s.listen(1)
+        s.listen(4)
+        s.setblocking(False)
+        INSTANCE_SOCK[0] = s
         return s
     except OSError:
         s.close()
@@ -6304,10 +7436,16 @@ def claim_single_instance():
 
 
 if __name__ == "__main__":
-    print("Pocket Karolina v13 | Python %s | %s" % (sys.version.split()[0], sys.platform))
+    print("Pocket Karolina v14 | Python %s | %s" % (sys.version.split()[0], sys.platform))
     _instance = claim_single_instance()
     if _instance is None:
-        print("Pocket Karolina is already running.")
+        print("Pocket Karolina is already running (brought her back to the screen).")
+        try:
+            import socket
+            with socket.create_connection(("127.0.0.1", INSTANCE_PORT), timeout=1) as _c:
+                _c.sendall(b"show")
+        except OSError:
+            pass
         sys.exit(0)
     try:
         Pet().run()

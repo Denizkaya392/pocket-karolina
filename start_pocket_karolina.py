@@ -41,16 +41,19 @@ def wait(msg):
 
 
 def already_running():
+    """Zaten açıksa ona 'öne gel' der (oyun modunda gizliyse geri gelir)."""
     import socket
     try:
-        socket.create_connection(("127.0.0.1", 47613), timeout=0.5).close()
+        with socket.create_connection(("127.0.0.1", 47613), timeout=0.5) as c:
+            c.sendall(b"show")
         return True
     except OSError:
         return False
 
 
 if already_running():
-    wait("Pocket Karolina zaten açık (belki açılışta kendiliğinden başladı). İkinci kopya açılmadı.")
+    print("\nPocket Karolina zaten açık; gizliyse ekrana geri getirildi. İkinci kopya açılmadı.")
+    time.sleep(3)
     sys.exit(0)
 
 try:

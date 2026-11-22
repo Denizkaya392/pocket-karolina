@@ -11,7 +11,7 @@ Single file · Python 3 + tkinter only · no dependencies · Windows / macOS / L
 ## Quick start
 
 ```bash
-python pocket_karolina_v13.py
+python pocket_karolina_v14.py
 ```
 
 On Windows you can double-click `start_pocket_karolina.bat` instead. The launcher shows any error and writes it to
@@ -48,6 +48,18 @@ Only one copy runs at a time, so opening her again by hand while she is already 
   screen edges, knocks her desk props flying, clicks through her own wardrobe panel and changes clothes like crazy,
   and opens your Downloads folder 2 or 3 times ("oops!"). Then she flops over, dizzy, and tidies her outfit a bit later.
   Click her to stop it early. It never clicks outside the app and never opens anything except Downloads.
+- **Treats for Lila.** Bag > Fun > Treat (or the phone): she throws a chew, Lila sprints to it, lies down and gnaws it
+  until it is gone, crumbs flying.
+- **Chat.** Right-click > Chat to write back to the phone. Phone messages appear on the left, your replies show up on
+  the phone as "Karolina", with a little notification.
+- **Poke from the phone.** One tap and she jumps on the desktop saying someone is thinking of you.
+- **Game mode.** Right-click > Game mode hides everything into a tiny Karolina head next to the clock; click it to
+  bring her back. With Settings > Auto hide on, she also disappears by herself while a fullscreen game or video is in
+  front, and comes back when you leave it. Starting the app again also brings her back.
+- **Desktop surprises.** Now and then a little flower, heart, star, candy, clover or gift pops up on the floor. Click it
+  (or let her walk over it) to collect it; the count shows in Bag > Fun.
+- **Seasonal costumes.** New Year, Valentine's Day, summer, Halloween (witch hat and pumpkin) and Christmas. She dresses
+  up once per season and changes back afterwards unless you changed her outfit yourself.
 - **Notes and reminders.** Type `18:30 call mom` and she reminds you at 18:30.
 - **Languages.** English, Turkish and Polish for the whole UI and every speech line.
 - **Calm mode.** Less walking, no chatter, no random emotes, for when you need to focus.
@@ -62,6 +74,12 @@ Only one copy runs at a time, so opening her again by hand while she is already 
 ### Emotes
 
 ![Emotes](docs/emotes.png)
+
+### New in v14
+
+![Seasons, Lila's treat, surprises and the tray icon](docs/new_v14.png)
+
+![Chat on the desktop and on the phone](docs/chat.png)
 
 ### Chaos mode
 
@@ -78,7 +96,7 @@ Open that link on a phone on the same Wi-Fi. From the phone you can:
 
 - chat with her and send notes and reminders,
 - change and save outfits (with a live preview of the character),
-- trigger actions and emotes (including Chaos!),
+- poke her, throw Lila a treat, trigger actions and emotes (including Chaos!),
 - play mini games: a rock paper scissors duel against the person at the PC, tic-tac-toe, and memory.
 
 ![Phone](docs/phone.png)
@@ -90,7 +108,7 @@ whitelist of actions. It is meant for your local network only; do not expose the
 
 | File | Purpose |
 |---|---|
-| `pocket_karolina_v13.py` | The whole app |
+| `pocket_karolina_v14.py` | The whole app |
 | `start_pocket_karolina.py` / `.bat` | Launcher that picks the newest `pocket_karolina_v*.py` and reports errors |
 | `autostart.py`, `install_autostart.bat`, `uninstall_autostart.bat` | Start with Windows without a console window |
 | `save.json` | Created on first run (ignored by git) |
@@ -102,5 +120,5 @@ whitelist of actions. It is meant for your local network only; do not expose the
 
 ---
 
-*Türkçe özet:* Masaüstünde yaşayan küçük piksel Karolina. `python pocket_karolina_v13.py` ile çalıştır; sağ tıkla menüyü aç,
-Settings > Phone ile telefondan kontrol et. Yeni: Bag > Fun > Chaos ile kaos modu. Windows açılınca kendiliğinden başlasın diye bir kere install_autostart.bat'a çift tıkla.
+*Türkçe özet:* Masaüstünde yaşayan küçük piksel Karolina. `python pocket_karolina_v14.py` ile çalıştır; sağ tıkla menüyü aç,
+Settings > Phone ile telefondan kontrol et. Yeni: kaos modu, Lila'ya kuru et, sohbet, oyun modu, sürprizler ve mevsimlik kostümler. Windows açılınca kendiliğinden başlasın diye bir kere install_autostart.bat'a çift tıkla.
