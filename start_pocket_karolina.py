@@ -7,6 +7,7 @@ import faulthandler
 import os
 import runpy
 import sys
+import time
 import traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -27,14 +28,26 @@ try:
     faulthandler.enable(open(os.path.join(HERE, "pet_crash.log"), "a"))
 except Exception:
     pass
+T0 = time.time()
+code = 0
+
+
+def wait(msg):
+    print("\n" + msg)
+    try:
+        input("Bu yazıyı bana gönder. Kapatmak için Enter...")
+    except Exception:
+        time.sleep(60)
+
+
 try:
     if not target:
         raise FileNotFoundError("pocket_karolina_v*.py bu klasörde yok")
     import tkinter                                                   # tkinter var mı?
     print("tkinter", tkinter.TkVersion)
     runpy.run_path(target, run_name="__main__")
-except SystemExit:
-    raise
+except SystemExit as e:
+    code = e.code if e.code is not None else 0
 except BaseException:
     msg = traceback.format_exc()
     print("\n=== HATA ===\n" + msg)
@@ -43,4 +56,14 @@ except BaseException:
             f.write("--- launcher py%s %s\n%s\n" % (sys.version.split()[0], sys.platform, msg))
     except OSError:
         pass
-    input("\nBu yazıyı bana gönder (pet_error.log dosyasına da yazıldı). Kapatmak için Enter...")
+    wait("Hata pet_error.log dosyasına da yazıldı.")
+    sys.exit(1)
+dt = time.time() - T0
+print("Uygulama %.1f sn sonra kapandı (çıkış kodu: %s)" % (dt, code))
+if dt < 30 or code not in (0, None):          # hemen kapandıysa pencere de kapanmasın
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write("--- erken kapanış %.1fs kod=%s py%s %s\n" % (dt, code, sys.version.split()[0], sys.platform))
+    except OSError:
+        pass
+    wait("Uygulama beklenenden çabuk kapandı.")
