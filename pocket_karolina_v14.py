@@ -1964,15 +1964,18 @@ def write_ico(path, grid, pal):
 
 class TrayIcon:
     """Windows bildirim alanı (saat yanındaki küçük simgeler) için ctypes ile simge.
-    Tk'nin olay döngüsü pencere mesajlarını dağıttığı için ayrı iş parçacığı gerekmez."""
+    ÖNEMLİ: pencere fonksiyonu Tk'yi ASLA çağırmaz (Tk'nin olay döngüsünün içinden çağrılır ve
+    Windows'ta kilitlenme/çökme yapar). Sadece 'clicked' işaretini koyar; Pet bunu döngüsünde okur.
+    Pencere sınıfı ve fonksiyonu tek sefer kaydedilir ve hiç silinmez (tekrar gizlenince çökmesin)."""
     WM_TRAY = 0x8000 + 17
+    _proc = None
+    _ready = False
+    current = None
 
-    def __init__(self, root, ico_path, tip, on_click):
-        import ctypes
-        from ctypes import wintypes
-        self.ct, self.on_click, self.root = ctypes, on_click, root
-        u32, sh = ctypes.windll.user32, ctypes.windll.shell32
-        self.u32, self.sh = u32, sh
+    @classmethod
+    def _setup(cls, ctypes, wintypes, u32):
+        if cls._ready:
+            return
         LRESULT = ctypes.c_ssize_t
         WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT, wintypes.WPARAM,
                                      wintypes.LPARAM)
@@ -1980,15 +1983,18 @@ class TrayIcon:
         u32.DefWindowProcW.restype = LRESULT
 
         def proc(hwnd, msg, wp, lp):
-            if msg == self.WM_TRAY and (lp & 0xFFFF) in (0x0202, 0x0203, 0x0205, 0x0405):
-                try:
-                    self.root.after(10, self.on_click)
-                except Exception:
-                    pass
+            try:
+                if msg == cls.WM_TRAY:
+                    if (lp & 0xFFFF) in (0x0202, 0x0203, 0x0205, 0x0405):
+                        cur = cls.current
+                        if cur is not None:
+                            cur.clicked = True
+                    return 0
+            except Exception:
                 return 0
             return u32.DefWindowProcW(hwnd, msg, wp, lp)
 
-        self._proc = WNDPROC(proc)
+        cls._proc = WNDPROC(proc)                            # sınıf ömrü boyunca canlı kalır
 
         class WNDCLASSW(ctypes.Structure):
             _fields_ = [("style", wintypes.UINT), ("lpfnWndProc", WNDPROC), ("cbClsExtra", ctypes.c_int),
@@ -1996,6 +2002,33 @@ class TrayIcon:
                         ("hIcon", wintypes.HICON), ("hCursor", wintypes.HANDLE),
                         ("hbrBackground", wintypes.HBRUSH), ("lpszMenuName", wintypes.LPCWSTR),
                         ("lpszClassName", wintypes.LPCWSTR)]
+        ctypes.windll.kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+        cls.hinst = ctypes.windll.kernel32.GetModuleHandleW(None)
+        wc = WNDCLASSW()
+        wc.lpfnWndProc = cls._proc
+        wc.hInstance = cls.hinst
+        wc.lpszClassName = "PocketKarolinaTray"
+        u32.RegisterClassW(ctypes.byref(wc))
+        u32.DestroyIcon.argtypes = [wintypes.HANDLE]
+        u32.DestroyWindow.argtypes = [wintypes.HWND]
+        u32.CreateWindowExW.restype = wintypes.HWND
+        u32.CreateWindowExW.argtypes = [wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD,
+                                        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                        wintypes.HWND, wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID]
+        u32.LoadImageW.restype = wintypes.HANDLE
+        u32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int,
+                                   ctypes.c_int, wintypes.UINT]
+        ctypes.windll.shell32.Shell_NotifyIconW.argtypes = [wintypes.DWORD, ctypes.c_void_p]
+        cls._ready = True
+
+    def __init__(self, root, ico_path, tip, on_click=None):
+        import ctypes
+        from ctypes import wintypes
+        self.ct = ctypes
+        self.clicked = False
+        u32, sh = ctypes.windll.user32, ctypes.windll.shell32
+        self.u32, self.sh = u32, sh
+        TrayIcon._setup(ctypes, wintypes, u32)
 
         class NOTIFYICONDATAW(ctypes.Structure):
             _fields_ = [("cbSize", wintypes.DWORD), ("hWnd", wintypes.HWND), ("uID", wintypes.UINT),
@@ -2006,27 +2039,10 @@ class TrayIcon:
                         ("szInfoTitle", ctypes.c_wchar * 64), ("dwInfoFlags", wintypes.DWORD),
                         ("guidItem", ctypes.c_byte * 16), ("hBalloonIcon", wintypes.HICON)]
 
-        self.NID = NOTIFYICONDATAW
-        ctypes.windll.kernel32.GetModuleHandleW.restype = wintypes.HMODULE
-        hinst = ctypes.windll.kernel32.GetModuleHandleW(None)
-        u32.DestroyIcon.argtypes = [wintypes.HANDLE]
-        u32.DestroyWindow.argtypes = [wintypes.HWND]
-        cls = WNDCLASSW()
-        cls.lpfnWndProc = self._proc
-        cls.hInstance = hinst
-        cls.lpszClassName = "PocketKarolinaTray"
-        u32.RegisterClassW(ctypes.byref(cls))                # zaten kayıtlıysa sorun değil
-        u32.CreateWindowExW.restype = wintypes.HWND
-        u32.CreateWindowExW.argtypes = [wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD,
-                                        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                        wintypes.HWND, wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID]
         self.hwnd = u32.CreateWindowExW(0, "PocketKarolinaTray", "PocketKarolinaTray", 0,
-                                        0, 0, 0, 0, None, None, hinst, None)
+                                        0, 0, 0, 0, None, None, TrayIcon.hinst, None)
         if not self.hwnd:
             raise OSError("tray window")
-        u32.LoadImageW.restype = wintypes.HANDLE
-        u32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int,
-                                   ctypes.c_int, wintypes.UINT]
         self.hicon = u32.LoadImageW(None, ico_path, 1, 0, 0, 0x10 | 0x40)   # LOADFROMFILE|DEFAULTSIZE
         nid = self.nid = NOTIFYICONDATAW()
         nid.cbSize = ctypes.sizeof(NOTIFYICONDATAW)
@@ -2035,7 +2051,7 @@ class TrayIcon:
         nid.uCallbackMessage = self.WM_TRAY
         nid.hIcon = self.hicon
         nid.szTip = tip[:127]
-        sh.Shell_NotifyIconW.argtypes = [wintypes.DWORD, ctypes.c_void_p]
+        TrayIcon.current = self
         if not sh.Shell_NotifyIconW(0, ctypes.byref(nid)):  # NIM_ADD
             self.remove()
             raise OSError("Shell_NotifyIcon")
@@ -2050,6 +2066,8 @@ class TrayIcon:
             pass
 
     def remove(self):
+        if TrayIcon.current is self:
+            TrayIcon.current = None
         try:
             self.sh.Shell_NotifyIconW(2, self.ct.byref(self.nid))   # NIM_DELETE
         except Exception:
@@ -2076,7 +2094,8 @@ class RestoreChip:
         cv = tk.Canvas(w, width=32, height=32, bg=KEY, highlightthickness=0, cursor="hand2")
         cv.pack()
         cv.create_image(0, 0, anchor="nw", image=self.img)
-        cv.bind("<Button-1>", lambda e: pet.set_hidden(None))
+        self.clicked = False
+        cv.bind("<Button-1>", lambda e: setattr(self, "clicked", True))
         w.geometry(f"+{pet.sw - 44}+{pet.sh - 92}")
 
     def remove(self):
@@ -6490,7 +6509,7 @@ class Pet:
                 import tempfile
                 ico = write_ico(os.path.join(tempfile.gettempdir(), "pocket_karolina_tray.ico"),
                                 head_icon_grid(), PAL)
-                self.tray = TrayIcon(self.root, ico, "Pocket Karolina", lambda: self.set_hidden(None))
+                self.tray = TrayIcon(self.root, ico, "Pocket Karolina")
                 self.tray.balloon("Pocket Karolina", tip)
                 return
             except Exception:
@@ -6532,6 +6551,10 @@ class Pet:
         """Gizliyken: çizim yok, sadece arka plan işleri."""
         self.t += 1
         t = self.t
+        if self.tray is not None and getattr(self.tray, "clicked", False):
+            self.tray.clicked = False
+            self.set_hidden(None)
+            return
         if t % 15 == 0:
             self.poll_instance()
         if t % 30 == 0:
